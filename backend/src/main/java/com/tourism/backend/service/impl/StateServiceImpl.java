@@ -3,10 +3,11 @@ package com.tourism.backend.service.impl;
 import com.tourism.backend.dto.state.StateRequest;
 import com.tourism.backend.dto.state.StateResponse;
 import com.tourism.backend.entity.State;
+import com.tourism.backend.exception.DuplicateResourceException;
+import com.tourism.backend.exception.ResourceNotFoundException;
 import com.tourism.backend.mapper.StateMapper;
 import com.tourism.backend.repository.StateRepository;
 import com.tourism.backend.service.StateService;
-import jakarta.persistence.EntityNotFoundException;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -27,7 +28,9 @@ public class StateServiceImpl implements StateService {
     public StateResponse createState(StateRequest request) {
 
         if (stateRepository.existsByName(request.getName())) {
-            throw new IllegalArgumentException("State already exists.");
+            throw new DuplicateResourceException(
+                    "State '" + request.getName() + "' already exists."
+            );
         }
 
         State state = stateMapper.toEntity(request);
@@ -51,18 +54,31 @@ public class StateServiceImpl implements StateService {
 
         State state = stateRepository.findById(id)
                 .orElseThrow(() ->
-                        new EntityNotFoundException("State not found."));
+                        new ResourceNotFoundException(
+                                "State with id " + id + " not found."
+                        ));
 
         return stateMapper.toResponse(state);
     }
 
     @Override
-    public StateResponse updateState(Long id,
-                                     StateRequest request) {
+    public StateResponse updateState(Long id, StateRequest request) {
 
         State state = stateRepository.findById(id)
                 .orElseThrow(() ->
-                        new EntityNotFoundException("State not found."));
+                        new ResourceNotFoundException(
+                                "State with id " + id + " not found."
+                        ));
+
+        // Prevent duplicate names when updating
+        stateRepository.findByName(request.getName())
+                .ifPresent(existingState -> {
+                    if (!existingState.getId().equals(id)) {
+                        throw new DuplicateResourceException(
+                                "State '" + request.getName() + "' already exists."
+                        );
+                    }
+                });
 
         state.setName(request.getName());
         state.setCapital(request.getCapital());
@@ -78,7 +94,9 @@ public class StateServiceImpl implements StateService {
     public void deleteState(Long id) {
 
         if (!stateRepository.existsById(id)) {
-            throw new EntityNotFoundException("State not found.");
+            throw new ResourceNotFoundException(
+                    "State with id " + id + " not found."
+            );
         }
 
         stateRepository.deleteById(id);
