@@ -9,7 +9,7 @@ public interface StateService {
 
     StateResponse createState(StateRequest request);
 
-    List<StateResponse> getAllStates();
+    List<StateResponse> getAllStates(String name);
 
     StateResponse getStateById(Long id);
 

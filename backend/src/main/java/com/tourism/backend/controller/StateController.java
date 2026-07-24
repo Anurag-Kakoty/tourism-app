@@ -43,12 +43,21 @@ public class StateController {
         return stateService.createState(request);
     }
 
-    @Operation(
-            summary = "Retrieve all states"
-    )
     @GetMapping
-    public List<StateResponse> getAllStates() {
-        return stateService.getAllStates();
+    @Operation(
+            summary = "Retrieve all states or filter by state name",
+            description = """
+                Returns all states.
+                
+                Optionally filter by an exact state name:
+                
+                /api/states?name=Assam
+                """
+    )
+    public List<StateResponse> getAllStates(
+            @RequestParam(required = false) String name) {
+
+        return stateService.getAllStates(name);
     }
 
     @Operation(

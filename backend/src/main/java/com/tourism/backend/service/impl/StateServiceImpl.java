@@ -57,7 +57,17 @@ public class StateServiceImpl implements StateService {
     }
 
     @Override
-    public List<StateResponse> getAllStates() {
+    public List<StateResponse> getAllStates(String name) {
+
+        if (name != null && !name.isBlank()) {
+
+            State state = stateRepository.findByNameIgnoreCase(name)
+                    .orElseThrow(() ->
+                            new ResourceNotFoundException(
+                                    "State with name '" + name + "' not found"));
+
+            return List.of(stateMapper.toResponse(state));
+        }
 
         return stateRepository.findAll()
                 .stream()

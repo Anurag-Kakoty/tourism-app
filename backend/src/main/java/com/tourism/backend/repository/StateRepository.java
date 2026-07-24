@@ -9,5 +9,7 @@ public interface StateRepository extends JpaRepository<State, Long> {
 
     Optional<State> findByName(String name);
 
+    Optional<State> findByNameIgnoreCase(String name);
+
     boolean existsByName(String name);
 }
