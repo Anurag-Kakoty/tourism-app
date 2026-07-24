@@ -1,5 +1,8 @@
-package com.tourism.backend.exception;
+package com.tourism.backend.exception.handler;
 
+import com.tourism.backend.exception.DuplicateResourceException;
+import com.tourism.backend.exception.ResourceNotFoundException;
+import com.tourism.backend.exception.model.ApiError;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

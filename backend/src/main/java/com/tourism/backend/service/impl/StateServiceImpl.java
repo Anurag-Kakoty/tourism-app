@@ -10,10 +10,16 @@ import com.tourism.backend.repository.StateRepository;
 import com.tourism.backend.service.StateService;
 import org.springframework.stereotype.Service;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.util.List;
 
 @Service
 public class StateServiceImpl implements StateService {
+
+    private static final Logger logger =
+            LoggerFactory.getLogger(StateServiceImpl.class);
 
     private final StateRepository stateRepository;
     private final StateMapper stateMapper;
@@ -27,7 +33,13 @@ public class StateServiceImpl implements StateService {
     @Override
     public StateResponse createState(StateRequest request) {
 
+        logger.info("Creating state '{}'", request.getName());
+
         if (stateRepository.existsByName(request.getName())) {
+
+            logger.warn("Duplicate state creation attempted: '{}'",
+                    request.getName());
+
             throw new DuplicateResourceException(
                     "State '" + request.getName() + "' already exists."
             );
@@ -36,6 +48,10 @@ public class StateServiceImpl implements StateService {
         State state = stateMapper.toEntity(request);
 
         State savedState = stateRepository.save(state);
+
+        logger.info("State '{}' created successfully with id {}",
+                savedState.getName(),
+                savedState.getId());
 
         return stateMapper.toResponse(savedState);
     }
@@ -52,11 +68,17 @@ public class StateServiceImpl implements StateService {
     @Override
     public StateResponse getStateById(Long id) {
 
+        logger.info("Fetching state with id {}", id);
+
         State state = stateRepository.findById(id)
-                .orElseThrow(() ->
-                        new ResourceNotFoundException(
-                                "State with id " + id + " not found."
-                        ));
+                .orElseThrow(() -> {
+
+                    logger.warn("State with id {} not found", id);
+
+                    return new ResourceNotFoundException(
+                            "State with id " + id + " not found."
+                    );
+                });
 
         return stateMapper.toResponse(state);
     }
@@ -93,12 +115,19 @@ public class StateServiceImpl implements StateService {
     @Override
     public void deleteState(Long id) {
 
+        logger.info("Deleting state with id {}", id);
+
         if (!stateRepository.existsById(id)) {
+
+            logger.warn("Delete failed. State with id {} not found", id);
+
             throw new ResourceNotFoundException(
                     "State with id " + id + " not found."
             );
         }
 
         stateRepository.deleteById(id);
+
+        logger.info("State with id {} deleted successfully", id);
     }
 }

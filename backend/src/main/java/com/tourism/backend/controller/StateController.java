@@ -1,5 +1,6 @@
 package com.tourism.backend.controller;
 
+import com.tourism.backend.constants.ApiPaths;
 import com.tourism.backend.dto.state.StateRequest;
 import com.tourism.backend.dto.state.StateResponse;
 import com.tourism.backend.service.StateService;
@@ -10,7 +11,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/states")
+@RequestMapping(ApiPaths.STATES)
 public class StateController {
 
     private final StateService stateService;

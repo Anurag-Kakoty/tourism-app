@@ -1,0 +1,13 @@
+package com.tourism.backend.constants;
+
+public final class ApiPaths {
+
+    private ApiPaths() {
+        // Prevent instantiation
+    }
+
+    public static final String API = "/api";
+
+    public static final String STATES = API + "/states";
+
+}

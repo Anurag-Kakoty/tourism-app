@@ -1,4 +1,4 @@
-package com.tourism.backend.exception;
+package com.tourism.backend.exception.model;
 
 import lombok.Builder;
 import lombok.Getter;
