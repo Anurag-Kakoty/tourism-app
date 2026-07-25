@@ -1,6 +1,6 @@
-package com.tourism.backend.repository;
+package com.tourism.backend.state.repository;
 
-import com.tourism.backend.entity.State;
+import com.tourism.backend.state.entity.State;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.Optional;

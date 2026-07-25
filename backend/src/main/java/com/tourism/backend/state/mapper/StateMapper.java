@@ -1,8 +1,8 @@
-package com.tourism.backend.mapper;
+package com.tourism.backend.state.mapper;
 
-import com.tourism.backend.dto.state.StateRequest;
-import com.tourism.backend.dto.state.StateResponse;
-import com.tourism.backend.entity.State;
+import com.tourism.backend.state.dto.StateRequest;
+import com.tourism.backend.state.dto.StateResponse;
+import com.tourism.backend.state.entity.State;
 import org.springframework.stereotype.Component;
 
 @Component

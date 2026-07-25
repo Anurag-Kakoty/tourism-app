@@ -1,7 +1,7 @@
-package com.tourism.backend.service;
+package com.tourism.backend.state.service;
 
-import com.tourism.backend.dto.state.StateRequest;
-import com.tourism.backend.dto.state.StateResponse;
+import com.tourism.backend.state.dto.StateRequest;
+import com.tourism.backend.state.dto.StateResponse;
 
 import java.util.List;
 

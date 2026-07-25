@@ -1,4 +1,4 @@
-package com.tourism.backend.entity;
+package com.tourism.backend.state.entity;
 
 import jakarta.persistence.*;
 import lombok.*;

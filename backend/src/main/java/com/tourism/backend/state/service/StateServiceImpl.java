@@ -1,13 +1,12 @@
-package com.tourism.backend.service.impl;
+package com.tourism.backend.state.service;
 
-import com.tourism.backend.dto.state.StateRequest;
-import com.tourism.backend.dto.state.StateResponse;
-import com.tourism.backend.entity.State;
+import com.tourism.backend.state.dto.StateRequest;
+import com.tourism.backend.state.dto.StateResponse;
+import com.tourism.backend.state.entity.State;
 import com.tourism.backend.exception.DuplicateResourceException;
 import com.tourism.backend.exception.ResourceNotFoundException;
-import com.tourism.backend.mapper.StateMapper;
-import com.tourism.backend.repository.StateRepository;
-import com.tourism.backend.service.StateService;
+import com.tourism.backend.state.mapper.StateMapper;
+import com.tourism.backend.state.repository.StateRepository;
 import org.springframework.stereotype.Service;
 
 import org.slf4j.Logger;

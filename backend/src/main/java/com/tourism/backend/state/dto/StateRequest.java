@@ -1,36 +1,39 @@
-package com.tourism.backend.dto.state;
+package com.tourism.backend.state.dto;
 
 import io.swagger.v3.oas.annotations.media.Schema;
-import lombok.Builder;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
 import lombok.Getter;
+import lombok.Setter;
 
 @Getter
-@Builder
-@Schema(description = "Response object representing an Indian state")
-public class StateResponse {
-
-    @Schema(
-            description = "Unique identifier of the state",
-            example = "1"
-    )
-    private Long id;
+@Setter
+public class StateRequest {
 
     @Schema(
             description = "Name of the Indian state",
             example = "Assam"
     )
+    @NotBlank(message = "State name is required")
+    @Size(max = 100,
+            message = "State name cannot exceed 100 characters")
     private String name;
 
     @Schema(
             description = "Capital city of the state",
             example = "Dispur"
     )
+    @NotBlank(message = "Capital is required")
+    @Size(max = 100,
+            message = "State capital cannot exceed 100 characters")
     private String capital;
 
     @Schema(
             description = "Brief description of the state",
             example = "Known for its tea gardens, Kaziranga National Park, and the Brahmaputra River."
     )
+    @Size(max = 2000,
+            message = "Description cannot exceed 2000 characters")
     private String description;
 
     @Schema(

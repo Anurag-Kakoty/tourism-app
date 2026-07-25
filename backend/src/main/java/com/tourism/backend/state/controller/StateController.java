@@ -1,9 +1,9 @@
-package com.tourism.backend.controller;
+package com.tourism.backend.state.controller;
 
 import com.tourism.backend.constants.ApiPaths;
-import com.tourism.backend.dto.state.StateRequest;
-import com.tourism.backend.dto.state.StateResponse;
-import com.tourism.backend.service.StateService;
+import com.tourism.backend.state.dto.StateRequest;
+import com.tourism.backend.state.dto.StateResponse;
+import com.tourism.backend.state.service.StateService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
