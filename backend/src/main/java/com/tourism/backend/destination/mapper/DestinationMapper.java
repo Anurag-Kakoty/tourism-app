@@ -9,11 +9,18 @@ import org.springframework.stereotype.Component;
 @Component
 public class DestinationMapper {
 
-    public Destination toEntity(
-            DestinationRequest request,
-            State state) {
+    public Destination toEntity(DestinationRequest request, State state) {
 
         Destination destination = new Destination();
+
+        updateEntity(destination, request, state);
+
+        return destination;
+    }
+
+    public void updateEntity(Destination destination,
+                             DestinationRequest request,
+                             State state) {
 
         destination.setName(request.getName());
         destination.setDescription(request.getDescription());
@@ -25,8 +32,6 @@ public class DestinationMapper {
         destination.setThumbnailUrl(request.getThumbnailUrl());
 
         destination.setState(state);
-
-        return destination;
     }
 
     public DestinationResponse toResponse(Destination destination) {
@@ -45,5 +50,4 @@ public class DestinationMapper {
                 .stateName(destination.getState().getName())
                 .build();
     }
-
 }

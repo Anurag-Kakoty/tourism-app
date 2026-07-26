@@ -4,7 +4,15 @@ import com.tourism.backend.destination.entity.Destination;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface DestinationRepository extends JpaRepository<Destination, Long> {
+
+    boolean existsByNameAndState_Id(String name, Long stateId);
+
+    Optional<Destination> findByNameIgnoreCaseAndState_Id(String name,
+                                                          Long stateId);
+
     List<Destination> findByState_NameIgnoreCase(String stateName);
+
 }
