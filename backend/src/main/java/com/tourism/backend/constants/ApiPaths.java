@@ -10,4 +10,5 @@ public final class ApiPaths {
 
     public static final String STATES = API + "/states";
 
+    public static final String DESTINATIONS = API + "/destinations";
 }

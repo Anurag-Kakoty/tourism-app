@@ -8,10 +8,10 @@ import org.springframework.context.annotation.Configuration;
 public class SwaggerGroupConfig {
 
     @Bean
-    public GroupedOpenApi stateApi() {
+    public GroupedOpenApi tourismApi() {
         return GroupedOpenApi.builder()
-                .group("States")
-                .pathsToMatch("/api/states/**")
+                .group("Tourism API")
+                .pathsToMatch("/api/**")
                 .build();
     }
 

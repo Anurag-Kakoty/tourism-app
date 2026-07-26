@@ -88,13 +88,15 @@ public class DestinationServiceImpl implements DestinationService {
 
             logger.info("Filtering destinations by state '{}'", state);
 
-            return destinationRepository.findByState_NameIgnoreCase(state)
+            return destinationRepository
+                    .findAllByState_NameIgnoreCase(state)
                     .stream()
                     .map(destinationMapper::toResponse)
                     .toList();
         }
 
-        return destinationRepository.findAll()
+        return destinationRepository
+                .findAllBy()
                 .stream()
                 .map(destinationMapper::toResponse)
                 .toList();
@@ -105,7 +107,8 @@ public class DestinationServiceImpl implements DestinationService {
 
         logger.info("Fetching destination with id {}", id);
 
-        Destination destination = destinationRepository.findById(id)
+        Destination destination = destinationRepository
+                .findWithStateById(id)
                 .orElseThrow(() -> {
 
                     logger.warn("Destination with id {} not found", id);
@@ -124,7 +127,8 @@ public class DestinationServiceImpl implements DestinationService {
 
         logger.info("Updating destination with id {}", id);
 
-        Destination destination = destinationRepository.findById(id)
+        Destination destination = destinationRepository
+                .findWithStateById(id)
                 .orElseThrow(() -> {
 
                     logger.warn("Destination with id {} not found", id);

@@ -1,6 +1,7 @@
 package com.tourism.backend.destination.repository;
 
 import com.tourism.backend.destination.entity.Destination;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
@@ -8,11 +9,18 @@ import java.util.Optional;
 
 public interface DestinationRepository extends JpaRepository<Destination, Long> {
 
-    boolean existsByNameAndState_Id(String name, Long stateId);
+    Optional<Destination> findByNameIgnoreCaseAndState_Id(
+            String name,
+            Long stateId
+    );
 
-    Optional<Destination> findByNameIgnoreCaseAndState_Id(String name,
-                                                          Long stateId);
+    @EntityGraph(attributePaths = "state")
+    Optional<Destination> findWithStateById(Long id);
 
-    List<Destination> findByState_NameIgnoreCase(String stateName);
+    @EntityGraph(attributePaths = "state")
+    List<Destination> findAllBy();
+
+    @EntityGraph(attributePaths = "state")
+    List<Destination> findAllByState_NameIgnoreCase(String stateName);
 
 }
