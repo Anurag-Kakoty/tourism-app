@@ -9,11 +9,15 @@ import com.tourism.backend.exception.DuplicateResourceException;
 import com.tourism.backend.exception.ResourceNotFoundException;
 import com.tourism.backend.state.entity.State;
 import com.tourism.backend.state.repository.StateRepository;
+import com.tourism.backend.tag.entity.Tag;
+import com.tourism.backend.tag.repository.TagRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Service
 public class DestinationServiceImpl implements DestinationService {
@@ -23,13 +27,17 @@ public class DestinationServiceImpl implements DestinationService {
 
     private final DestinationRepository destinationRepository;
     private final StateRepository stateRepository;
+    private final TagRepository tagRepository;
     private final DestinationMapper destinationMapper;
 
     public DestinationServiceImpl(DestinationRepository destinationRepository,
                                   StateRepository stateRepository,
+                                  TagRepository tagRepository,
                                   DestinationMapper destinationMapper) {
+
         this.destinationRepository = destinationRepository;
         this.stateRepository = stateRepository;
+        this.tagRepository = tagRepository;
         this.destinationMapper = destinationMapper;
     }
 
@@ -45,7 +53,9 @@ public class DestinationServiceImpl implements DestinationService {
                             request.getStateId());
 
                     return new ResourceNotFoundException(
-                            "State with id " + request.getStateId() + " not found."
+                            "State with id "
+                                    + request.getStateId()
+                                    + " not found."
                     );
                 });
 
@@ -61,24 +71,32 @@ public class DestinationServiceImpl implements DestinationService {
                             state.getName());
 
                     throw new DuplicateResourceException(
-                            "Destination '" + request.getName()
+                            "Destination '"
+                                    + request.getName()
                                     + "' already exists in state '"
-                                    + state.getName() + "'.");
+                                    + state.getName()
+                                    + "'.");
                 });
 
+        Set<Tag> tags = getTagsFromRequest(request);
+
         Destination destination =
-                destinationMapper.toEntity(request, state);
+                destinationMapper.toEntity(
+                        request,
+                        state,
+                        tags
+                );
 
         Destination savedDestination =
                 destinationRepository.save(destination);
 
-        logger.info("Destination '{}' created successfully with id {}",
+        logger.info(
+                "Destination '{}' created successfully with id {}",
                 savedDestination.getName(),
                 savedDestination.getId());
 
         return destinationMapper.toResponse(savedDestination);
     }
-
     @Override
     public List<DestinationResponse> getAllDestinations(String state) {
 
@@ -168,7 +186,14 @@ public class DestinationServiceImpl implements DestinationService {
                     }
                 });
 
-        destinationMapper.updateEntity(destination, request, state);
+        Set<Tag> tags = getTagsFromRequest(request);
+
+        destinationMapper.updateEntity(
+                destination,
+                request,
+                state,
+                tags
+        );
 
         Destination updatedDestination =
                 destinationRepository.save(destination);
@@ -197,4 +222,25 @@ public class DestinationServiceImpl implements DestinationService {
 
         logger.info("Destination with id {} deleted successfully", id);
     }
+
+    private Set<Tag> getTagsFromRequest(DestinationRequest request) {
+
+        if (request.getTagIds() == null || request.getTagIds().isEmpty()) {
+            return Set.of();
+        }
+
+        return request.getTagIds()
+                .stream()
+                .map(id -> tagRepository.findById(id)
+                        .orElseThrow(() -> {
+
+                            logger.warn("Tag with id {} not found", id);
+
+                            return new ResourceNotFoundException(
+                                    "Tag with id " + id + " not found."
+                            );
+                        }))
+                .collect(Collectors.toSet());
+    }
+
 }

@@ -14,13 +14,13 @@ public interface DestinationRepository extends JpaRepository<Destination, Long> 
             Long stateId
     );
 
-    @EntityGraph(attributePaths = "state")
+    @EntityGraph(attributePaths = {"state", "tags"})
     Optional<Destination> findWithStateById(Long id);
 
-    @EntityGraph(attributePaths = "state")
+    @EntityGraph(attributePaths = {"state", "tags"})
     List<Destination> findAllBy();
 
-    @EntityGraph(attributePaths = "state")
+    @EntityGraph(attributePaths = {"state", "tags"})
     List<Destination> findAllByState_NameIgnoreCase(String stateName);
 
 }
