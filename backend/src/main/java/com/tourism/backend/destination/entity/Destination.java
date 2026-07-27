@@ -2,10 +2,16 @@ package com.tourism.backend.destination.entity;
 
 import com.tourism.backend.state.entity.State;
 import com.tourism.backend.util.BaseEntity;
+
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+
+import com.tourism.backend.tag.entity.Tag;
+
+import java.util.HashSet;
+import java.util.Set;
 
 import java.math.BigDecimal;
 
@@ -43,4 +49,12 @@ public class Destination extends BaseEntity {
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "state_id", nullable = false)
     private State state;
+
+    @ManyToMany
+    @JoinTable(
+            name = "destination_tags",
+            joinColumns = @JoinColumn(name = "destination_id"),
+            inverseJoinColumns = @JoinColumn(name = "tag_id")
+    )
+    private Set<Tag> tags = new HashSet<>();
 }
