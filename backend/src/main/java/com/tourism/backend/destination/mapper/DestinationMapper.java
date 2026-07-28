@@ -3,6 +3,7 @@ package com.tourism.backend.destination.mapper;
 import com.tourism.backend.destination.dto.DestinationRequest;
 import com.tourism.backend.destination.dto.DestinationResponse;
 import com.tourism.backend.destination.entity.Destination;
+import com.tourism.backend.experience.entity.Experience;
 import com.tourism.backend.state.entity.State;
 import com.tourism.backend.tag.entity.Tag;
 import org.springframework.stereotype.Component;
@@ -16,11 +17,18 @@ public class DestinationMapper {
     public Destination toEntity(
             DestinationRequest request,
             State state,
-            Set<Tag> tags) {
+            Set<Tag> tags,
+            Set<Experience> experiences) {
 
         Destination destination = new Destination();
 
-        updateEntity(destination, request, state, tags);
+        updateEntity(
+                destination,
+                request,
+                state,
+                tags,
+                experiences
+        );
 
         return destination;
     }
@@ -29,7 +37,8 @@ public class DestinationMapper {
             Destination destination,
             DestinationRequest request,
             State state,
-            Set<Tag> tags) {
+            Set<Tag> tags,
+            Set<Experience> experiences) {
 
         destination.setName(request.getName());
         destination.setDescription(request.getDescription());
@@ -42,6 +51,7 @@ public class DestinationMapper {
 
         destination.setState(state);
         destination.setTags(tags);
+        destination.setExperiences(experiences);
     }
 
     public DestinationResponse toResponse(Destination destination) {
@@ -72,6 +82,20 @@ public class DestinationMapper {
                 destination.getTags()
                         .stream()
                         .map(Tag::getName)
+                        .collect(Collectors.toSet())
+        );
+
+        response.setExperienceIds(
+                destination.getExperiences()
+                        .stream()
+                        .map(Experience::getId)
+                        .collect(Collectors.toSet())
+        );
+
+        response.setExperienceNames(
+                destination.getExperiences()
+                        .stream()
+                        .map(Experience::getName)
                         .collect(Collectors.toSet())
         );
 

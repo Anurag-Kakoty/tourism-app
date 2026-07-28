@@ -93,4 +93,16 @@ public class DestinationResponse {
     )
     private Set<String> tagNames = new HashSet<>();
 
+    @Schema(
+            description = "IDs of associated experiences",
+            example = "[1,2]"
+    )
+    private Set<Long> experienceIds = new HashSet<>();
+
+    @Schema(
+            description = "Names of associated experiences",
+            example = "[\"Trekking\",\"Photography\"]"
+    )
+    private Set<String> experienceNames = new HashSet<>();
+
 }

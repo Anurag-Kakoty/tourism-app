@@ -11,6 +11,9 @@ import com.tourism.backend.state.entity.State;
 import com.tourism.backend.state.repository.StateRepository;
 import com.tourism.backend.tag.entity.Tag;
 import com.tourism.backend.tag.repository.TagRepository;
+import com.tourism.backend.experience.entity.Experience;
+import com.tourism.backend.experience.repository.ExperienceRepository;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -29,15 +32,18 @@ public class DestinationServiceImpl implements DestinationService {
     private final StateRepository stateRepository;
     private final TagRepository tagRepository;
     private final DestinationMapper destinationMapper;
+    private final ExperienceRepository experienceRepository;
 
     public DestinationServiceImpl(DestinationRepository destinationRepository,
                                   StateRepository stateRepository,
                                   TagRepository tagRepository,
+                                  ExperienceRepository experienceRepository,
                                   DestinationMapper destinationMapper) {
 
         this.destinationRepository = destinationRepository;
         this.stateRepository = stateRepository;
         this.tagRepository = tagRepository;
+        this.experienceRepository = experienceRepository;
         this.destinationMapper = destinationMapper;
     }
 
@@ -79,14 +85,15 @@ public class DestinationServiceImpl implements DestinationService {
                 });
 
         Set<Tag> tags = getTagsFromRequest(request);
+        Set<Experience> experiences = getExperiencesFromRequest(request);
 
         Destination destination =
                 destinationMapper.toEntity(
                         request,
                         state,
-                        tags
+                        tags,
+                        experiences
                 );
-
         Destination savedDestination =
                 destinationRepository.save(destination);
 
@@ -187,12 +194,14 @@ public class DestinationServiceImpl implements DestinationService {
                 });
 
         Set<Tag> tags = getTagsFromRequest(request);
+        Set<Experience> experiences = getExperiencesFromRequest(request);
 
         destinationMapper.updateEntity(
                 destination,
                 request,
                 state,
-                tags
+                tags,
+                experiences
         );
 
         Destination updatedDestination =
@@ -238,6 +247,32 @@ public class DestinationServiceImpl implements DestinationService {
 
                             return new ResourceNotFoundException(
                                     "Tag with id " + id + " not found."
+                            );
+                        }))
+                .collect(Collectors.toSet());
+    }
+
+    private Set<Experience> getExperiencesFromRequest(
+            DestinationRequest request) {
+
+        if (request.getExperienceIds() == null
+                || request.getExperienceIds().isEmpty()) {
+            return Set.of();
+        }
+
+        return request.getExperienceIds()
+                .stream()
+                .map(id -> experienceRepository.findById(id)
+                        .orElseThrow(() -> {
+
+                            logger.warn(
+                                    "Experience with id {} not found",
+                                    id);
+
+                            return new ResourceNotFoundException(
+                                    "Experience with id "
+                                            + id
+                                            + " not found."
                             );
                         }))
                 .collect(Collectors.toSet());

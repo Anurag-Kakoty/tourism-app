@@ -61,4 +61,10 @@ public class DestinationRequest {
     )
     private Set<Long> tagIds = new HashSet<>();
 
+    @Schema(
+            description = "IDs of experiences associated with the destination",
+            example = "[1,2]"
+    )
+    private Set<Long> experienceIds = new HashSet<>();
+
 }
