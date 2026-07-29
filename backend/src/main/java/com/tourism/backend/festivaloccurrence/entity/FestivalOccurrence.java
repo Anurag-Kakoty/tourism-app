@@ -6,7 +6,6 @@ import com.tourism.backend.state.entity.State;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
-import jakarta.validation.constraints.Size;
 import lombok.*;
 
 import java.time.LocalDate;
@@ -48,15 +47,10 @@ public class FestivalOccurrence extends BaseEntity {
     @Column(nullable = false)
     private LocalDate endDate;
 
-    @Size(max = 150)
-    @Column(length = 150)
-    private String district;
+    @Builder.Default
+    @Column(nullable = false)
+    private Boolean confirmed = false;
 
-    @Size(max = 200)
-    @Column(length = 200)
-    private String venue;
-
-    @Size(max = 2000)
     @Column(length = 2000)
     private String notes;
 }
