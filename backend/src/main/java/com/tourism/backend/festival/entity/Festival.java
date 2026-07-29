@@ -5,8 +5,10 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.Size;
 import lombok.*;
 
-//import java.util.HashSet;
-//import java.util.Set;
+import java.util.HashSet;
+import java.util.Set;
+
+import com.tourism.backend.festivaloccurrence.entity.FestivalOccurrence;
 
 @Entity
 @Table(
@@ -39,14 +41,15 @@ public class Festival extends BaseEntity {
     @Column(length = 500)
     @Size(max = 500)
     private String officialWebsite;
-/*
+
     @OneToMany(
             mappedBy = "festival",
             cascade = CascadeType.ALL,
             orphanRemoval = true,
             fetch = FetchType.LAZY
     )
+    @Builder.Default
     private Set<FestivalOccurrence> occurrences = new HashSet<>();
 
- */
+
 }
