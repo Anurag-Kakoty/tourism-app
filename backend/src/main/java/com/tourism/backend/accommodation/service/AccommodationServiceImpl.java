@@ -6,19 +6,21 @@ import com.tourism.backend.accommodation.entity.Accommodation;
 import com.tourism.backend.accommodation.entity.AccommodationType;
 import com.tourism.backend.accommodation.mapper.AccommodationMapper;
 import com.tourism.backend.accommodation.repository.AccommodationRepository;
-import com.tourism.backend.exception.DuplicateResourceException;
-import com.tourism.backend.exception.ResourceNotFoundException;
 import com.tourism.backend.destination.entity.Destination;
 import com.tourism.backend.destination.repository.DestinationRepository;
+import com.tourism.backend.exception.DuplicateResourceException;
+import com.tourism.backend.exception.ResourceNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
 @Service
 @RequiredArgsConstructor
 @Slf4j
+@Transactional
 public class AccommodationServiceImpl implements AccommodationService {
 
     private final AccommodationRepository accommodationRepository;
@@ -40,11 +42,9 @@ public class AccommodationServiceImpl implements AccommodationService {
 
         Destination destination = getDestination(request.getDestinationId());
 
-        Accommodation accommodation =
-                mapper.toEntity(request, destination);
+        Accommodation accommodation = mapper.toEntity(request, destination);
 
-        Accommodation saved =
-                accommodationRepository.save(accommodation);
+        Accommodation saved = accommodationRepository.save(accommodation);
 
         log.info("Accommodation created with id {}", saved.getId());
 
@@ -75,10 +75,10 @@ public class AccommodationServiceImpl implements AccommodationService {
         mapper.updateEntity(
                 accommodation,
                 request,
-                destination);
+                destination
+        );
 
-        Accommodation updated =
-                accommodationRepository.save(accommodation);
+        Accommodation updated = accommodationRepository.save(accommodation);
 
         log.info("Accommodation {} updated", id);
 
@@ -86,60 +86,68 @@ public class AccommodationServiceImpl implements AccommodationService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public AccommodationResponse getById(Long id) {
 
         return mapper.toResponse(getAccommodation(id));
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<AccommodationResponse> getAll() {
 
-        return accommodationRepository.findAllBy()
+        return accommodationRepository.findAllByOrderByNameAsc()
                 .stream()
                 .map(mapper::toResponse)
                 .toList();
     }
 
     @Override
-    public List<AccommodationResponse> getByDestination(
-            Long destinationId) {
+    @Transactional(readOnly = true)
+    public List<AccommodationResponse> getByDestination(Long destinationId) {
 
         return accommodationRepository
-                .findAllByDestination_Id(destinationId)
+                .findAllByDestination_IdOrderByNameAsc(destinationId)
                 .stream()
                 .map(mapper::toResponse)
                 .toList();
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<AccommodationResponse> getByType(
             AccommodationType type) {
 
         return accommodationRepository
-                .findAllByType(type)
+                .findAllByTypeOrderByNameAsc(type)
                 .stream()
                 .map(mapper::toResponse)
                 .toList();
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<AccommodationResponse> getByAvailable(
             Boolean available) {
 
         return accommodationRepository
-                .findAllByAvailable(available)
+                .findAllByAvailableOrderByNameAsc(available)
                 .stream()
                 .map(mapper::toResponse)
                 .toList();
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<AccommodationResponse> getByDestinationAndType(
             Long destinationId,
             AccommodationType type) {
 
         return accommodationRepository
-                .findAllByDestination_IdAndType(destinationId, type)
+                .findAllByDestination_IdAndTypeOrderByNameAsc(
+                        destinationId,
+                        type
+                )
                 .stream()
                 .map(mapper::toResponse)
                 .toList();
@@ -157,7 +165,7 @@ public class AccommodationServiceImpl implements AccommodationService {
 
     private Accommodation getAccommodation(Long id) {
 
-        return accommodationRepository.findById(id)
+        return accommodationRepository.findWithDestinationById(id)
                 .orElseThrow(() ->
                         new ResourceNotFoundException(
                                 "Accommodation not found with id: " + id));

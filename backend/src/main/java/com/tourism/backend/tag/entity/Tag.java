@@ -1,6 +1,6 @@
 package com.tourism.backend.tag.entity;
 
-import com.tourism.backend.destination.entity.Destination;
+import com.tourism.backend.attraction.entity.Attraction;
 import com.tourism.backend.util.BaseEntity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -38,6 +38,6 @@ public class Tag extends BaseEntity {
     private String description;
 
     @ManyToMany(mappedBy = "tags")
-    private Set<Destination> destinations = new HashSet<>();
+    private Set<Attraction> attractions = new HashSet<>();
 
 }

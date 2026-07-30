@@ -12,7 +12,11 @@ public final class ApiPaths {
 
     public static final String DESTINATIONS = API + "/destinations";
 
+    public static final String ATTRACTIONS = API + "/attractions";
+
     public static final String TAGS = API + "/tags";
 
     public static final String EXPERIENCES = API + "/experiences";
+
+    public static final String ACCOMMODATIONS = API + "/accommodations";
 }

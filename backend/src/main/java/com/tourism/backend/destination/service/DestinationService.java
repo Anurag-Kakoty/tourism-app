@@ -2,19 +2,27 @@ package com.tourism.backend.destination.service;
 
 import com.tourism.backend.destination.dto.DestinationRequest;
 import com.tourism.backend.destination.dto.DestinationResponse;
+import com.tourism.backend.destination.entity.DestinationType;
 
 import java.util.List;
 
 public interface DestinationService {
 
-    DestinationResponse createDestination(DestinationRequest request);
+    DestinationResponse create(DestinationRequest request);
 
-    List<DestinationResponse> getAllDestinations(String state);
+    DestinationResponse update(Long id, DestinationRequest request);
 
-    DestinationResponse getDestinationById(Long id);
+    DestinationResponse getById(Long id);
 
-    DestinationResponse updateDestination(Long id, DestinationRequest request);
+    List<DestinationResponse> getAll();
 
-    void deleteDestination(Long id);
+    List<DestinationResponse> getByState(Long stateId);
 
+    List<DestinationResponse> getByType(DestinationType type);
+
+    List<DestinationResponse> getFeatured();
+
+    List<DestinationResponse> getPopular();
+
+    void delete(Long id);
 }

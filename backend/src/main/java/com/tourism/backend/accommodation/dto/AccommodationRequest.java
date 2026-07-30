@@ -2,15 +2,15 @@ package com.tourism.backend.accommodation.dto;
 
 import com.tourism.backend.accommodation.entity.AccommodationType;
 import jakarta.validation.constraints.*;
-import lombok.*;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import java.math.BigDecimal;
 
 @Getter
 @Setter
 @NoArgsConstructor
-@AllArgsConstructor
-@Builder
 public class AccommodationRequest {
 
     @NotBlank(message = "Accommodation name is required")
@@ -22,8 +22,7 @@ public class AccommodationRequest {
     private AccommodationType type;
 
     @NotNull(message = "Price per night is required")
-    @DecimalMin(value = "0.01", inclusive = true,
-            message = "Price must be greater than zero")
+    @DecimalMin(value = "0.01", message = "Price must be greater than zero")
     private BigDecimal pricePerNight;
 
     @DecimalMin(value = "0.0", message = "Rating cannot be less than 0")

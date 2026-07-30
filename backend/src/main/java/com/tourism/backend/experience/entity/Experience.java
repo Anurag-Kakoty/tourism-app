@@ -1,6 +1,6 @@
 package com.tourism.backend.experience.entity;
 
-import com.tourism.backend.destination.entity.Destination;
+import com.tourism.backend.attraction.entity.Attraction;
 import com.tourism.backend.util.BaseEntity;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
@@ -36,5 +36,5 @@ public class Experience extends BaseEntity {
     private String icon;
 
     @ManyToMany(mappedBy = "experiences")
-    private Set<Destination> destinations = new HashSet<>();
+    private Set<Attraction> attractions = new HashSet<>();
 }

@@ -4,67 +4,120 @@ import com.tourism.backend.accommodation.dto.AccommodationRequest;
 import com.tourism.backend.accommodation.dto.AccommodationResponse;
 import com.tourism.backend.accommodation.entity.AccommodationType;
 import com.tourism.backend.accommodation.service.AccommodationService;
+import com.tourism.backend.constants.ApiPaths;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/accommodations")
+@RequestMapping(ApiPaths.ACCOMMODATIONS)
 @RequiredArgsConstructor
 @Tag(
-        name = "Accommodation",
-        description = "Accommodation management APIs"
+        name = "Accommodations",
+        description = "Operations for managing accommodations"
 )
 public class AccommodationController {
 
     private final AccommodationService service;
 
+    @Operation(summary = "Create a new accommodation")
+    @ApiResponse(responseCode = "201", description = "Accommodation created successfully")
+    @ApiResponse(responseCode = "400", description = "Validation failed")
+    @ApiResponse(responseCode = "404", description = "Destination not found")
+    @ApiResponse(responseCode = "409", description = "Accommodation already exists")
     @PostMapping
-    @Operation(summary = "Create accommodation")
+    @ResponseStatus(HttpStatus.CREATED)
     public AccommodationResponse create(
             @Valid @RequestBody AccommodationRequest request) {
 
         return service.create(request);
     }
 
+    @Operation(summary = "Update an existing accommodation")
+    @ApiResponse(responseCode = "200", description = "Accommodation updated successfully")
+    @ApiResponse(responseCode = "404", description = "Accommodation or Destination not found")
+    @ApiResponse(responseCode = "409", description = "Duplicate accommodation")
     @PutMapping("/{id}")
-    @Operation(summary = "Update accommodation")
     public AccommodationResponse update(
-            @PathVariable Long id,
-            @Valid @RequestBody AccommodationRequest request) {
+
+            @Parameter(
+                    description = "Accommodation ID",
+                    example = "1"
+            )
+            @PathVariable
+            Long id,
+
+            @Valid
+            @RequestBody
+            AccommodationRequest request) {
 
         return service.update(id, request);
     }
 
+    @Operation(summary = "Retrieve an accommodation by its ID")
+    @ApiResponse(responseCode = "200", description = "Accommodation found")
+    @ApiResponse(responseCode = "404", description = "Accommodation not found")
     @GetMapping("/{id}")
-    @Operation(summary = "Get accommodation by ID")
     public AccommodationResponse getById(
-            @PathVariable Long id) {
+
+            @Parameter(
+                    description = "Accommodation ID",
+                    example = "1"
+            )
+            @PathVariable
+            Long id) {
 
         return service.getById(id);
     }
 
+    @Operation(
+            summary = "Retrieve accommodations",
+            description = """
+                    Returns all accommodations.
+
+                    Optional filters:
+                    - destinationId
+                    - type
+                    - available
+
+                    Examples:
+
+                    /api/accommodations?destinationId=1
+
+                    /api/accommodations?type=HOTEL
+
+                    /api/accommodations?available=true
+
+                    /api/accommodations?destinationId=1&type=HOTEL
+                    """
+    )
     @GetMapping
-    @Operation(summary = "Get accommodations")
     public List<AccommodationResponse> getAll(
 
+            @Parameter(description = "Destination ID")
             @RequestParam(required = false)
             Long destinationId,
 
+            @Parameter(description = "Accommodation type")
             @RequestParam(required = false)
             AccommodationType type,
 
+            @Parameter(description = "Availability")
             @RequestParam(required = false)
             Boolean available) {
 
         if (destinationId != null && type != null) {
             return service.getByDestinationAndType(
                     destinationId,
-                    type);
+                    type
+            );
         }
 
         if (destinationId != null) {
@@ -82,10 +135,19 @@ public class AccommodationController {
         return service.getAll();
     }
 
+    @Operation(summary = "Delete an accommodation")
+    @ApiResponse(responseCode = "204", description = "Accommodation deleted successfully")
+    @ApiResponse(responseCode = "404", description = "Accommodation not found")
     @DeleteMapping("/{id}")
-    @Operation(summary = "Delete accommodation")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
     public void delete(
-            @PathVariable Long id) {
+
+            @Parameter(
+                    description = "Accommodation ID",
+                    example = "1"
+            )
+            @PathVariable
+            Long id) {
 
         service.delete(id);
     }

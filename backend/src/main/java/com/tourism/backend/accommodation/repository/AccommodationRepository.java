@@ -10,24 +10,41 @@ import java.util.Optional;
 
 public interface AccommodationRepository extends JpaRepository<Accommodation, Long> {
 
-    @Override
-    @EntityGraph(attributePaths = "destination")
-    Optional<Accommodation> findById(Long id);
+    @EntityGraph(attributePaths = {
+            "destination",
+            "destination.state"
+    })
+    Optional<Accommodation> findWithDestinationById(Long id);
 
-    @EntityGraph(attributePaths = "destination")
-    List<Accommodation> findAllBy();
+    @EntityGraph(attributePaths = {
+            "destination",
+            "destination.state"
+    })
+    List<Accommodation> findAllByOrderByNameAsc();
 
-    @EntityGraph(attributePaths = "destination")
-    List<Accommodation> findAllByDestination_Id(Long destinationId);
+    @EntityGraph(attributePaths = {
+            "destination",
+            "destination.state"
+    })
+    List<Accommodation> findAllByDestination_IdOrderByNameAsc(Long destinationId);
 
-    @EntityGraph(attributePaths = "destination")
-    List<Accommodation> findAllByType(AccommodationType type);
+    @EntityGraph(attributePaths = {
+            "destination",
+            "destination.state"
+    })
+    List<Accommodation> findAllByTypeOrderByNameAsc(AccommodationType type);
 
-    @EntityGraph(attributePaths = "destination")
-    List<Accommodation> findAllByAvailable(Boolean available);
+    @EntityGraph(attributePaths = {
+            "destination",
+            "destination.state"
+    })
+    List<Accommodation> findAllByAvailableOrderByNameAsc(Boolean available);
 
-    @EntityGraph(attributePaths = "destination")
-    List<Accommodation> findAllByDestination_IdAndType(
+    @EntityGraph(attributePaths = {
+            "destination",
+            "destination.state"
+    })
+    List<Accommodation> findAllByDestination_IdAndTypeOrderByNameAsc(
             Long destinationId,
             AccommodationType type
     );

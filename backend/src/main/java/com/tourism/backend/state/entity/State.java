@@ -1,12 +1,10 @@
 package com.tourism.backend.state.entity;
 
-import com.tourism.backend.destination.entity.Destination;
 import com.tourism.backend.util.BaseEntity;
-import jakarta.persistence.*;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Table;
 import lombok.*;
-
-import java.util.ArrayList;
-import java.util.List;
 
 @Entity
 @Table(name = "states")
@@ -26,10 +24,4 @@ public class State extends BaseEntity {
     private String description;
 
     private String thumbnailUrl;
-
-    @OneToMany(
-            mappedBy = "state",
-            fetch = FetchType.LAZY
-    )
-    private List<Destination> destinations = new ArrayList<>();
 }

@@ -3,7 +3,9 @@ package com.tourism.backend.accommodation.entity;
 import com.tourism.backend.util.BaseEntity;
 import com.tourism.backend.destination.entity.Destination;
 import jakarta.persistence.*;
-import lombok.*;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import java.math.BigDecimal;
 
@@ -12,8 +14,6 @@ import java.math.BigDecimal;
 @Getter
 @Setter
 @NoArgsConstructor
-@AllArgsConstructor
-@Builder
 public class Accommodation extends BaseEntity {
 
     @Column(nullable = false, length = 150)
@@ -26,7 +26,7 @@ public class Accommodation extends BaseEntity {
     @Column(nullable = false)
     private AccommodationType type;
 
-    @Column(nullable = false,precision = 10, scale = 2)
+    @Column(nullable = false, precision = 10, scale = 2)
     private BigDecimal pricePerNight;
 
     private Double rating;
@@ -50,7 +50,6 @@ public class Accommodation extends BaseEntity {
     @Column(length = 500)
     private String imageUrl;
 
-    @Builder.Default
     @Column(nullable = false)
     private Boolean available = true;
 

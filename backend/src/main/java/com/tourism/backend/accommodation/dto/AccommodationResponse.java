@@ -1,15 +1,15 @@
 package com.tourism.backend.accommodation.dto;
 
 import com.tourism.backend.accommodation.entity.AccommodationType;
-import lombok.*;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import java.math.BigDecimal;
 
 @Getter
 @Setter
 @NoArgsConstructor
-@AllArgsConstructor
-@Builder
 public class AccommodationResponse {
 
     private Long id;
@@ -43,4 +43,8 @@ public class AccommodationResponse {
     private Long destinationId;
 
     private String destinationName;
+
+    private Long stateId;
+
+    private String stateName;
 }

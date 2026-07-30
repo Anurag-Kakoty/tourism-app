@@ -1,281 +1,164 @@
 package com.tourism.backend.destination.service;
 
+import com.tourism.backend.exception.DuplicateResourceException;
+import com.tourism.backend.exception.ResourceNotFoundException;
 import com.tourism.backend.destination.dto.DestinationRequest;
 import com.tourism.backend.destination.dto.DestinationResponse;
 import com.tourism.backend.destination.entity.Destination;
+import com.tourism.backend.destination.entity.DestinationType;
 import com.tourism.backend.destination.mapper.DestinationMapper;
 import com.tourism.backend.destination.repository.DestinationRepository;
-import com.tourism.backend.exception.DuplicateResourceException;
-import com.tourism.backend.exception.ResourceNotFoundException;
 import com.tourism.backend.state.entity.State;
 import com.tourism.backend.state.repository.StateRepository;
-import com.tourism.backend.tag.entity.Tag;
-import com.tourism.backend.tag.repository.TagRepository;
-import com.tourism.backend.experience.entity.Experience;
-import com.tourism.backend.experience.repository.ExperienceRepository;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
 
 @Service
+@RequiredArgsConstructor
+@Slf4j
 public class DestinationServiceImpl implements DestinationService {
-
-    private static final Logger logger =
-            LoggerFactory.getLogger(DestinationServiceImpl.class);
 
     private final DestinationRepository destinationRepository;
     private final StateRepository stateRepository;
-    private final TagRepository tagRepository;
-    private final DestinationMapper destinationMapper;
-    private final ExperienceRepository experienceRepository;
-
-    public DestinationServiceImpl(DestinationRepository destinationRepository,
-                                  StateRepository stateRepository,
-                                  TagRepository tagRepository,
-                                  ExperienceRepository experienceRepository,
-                                  DestinationMapper destinationMapper) {
-
-        this.destinationRepository = destinationRepository;
-        this.stateRepository = stateRepository;
-        this.tagRepository = tagRepository;
-        this.experienceRepository = experienceRepository;
-        this.destinationMapper = destinationMapper;
-    }
+    private final DestinationMapper mapper;
 
     @Override
-    public DestinationResponse createDestination(DestinationRequest request) {
+    public DestinationResponse create(DestinationRequest request) {
 
-        logger.info("Creating destination '{}'", request.getName());
+        log.info("Creating destination '{}'", request.getName());
 
-        State state = stateRepository.findById(request.getStateId())
-                .orElseThrow(() -> {
+        if (destinationRepository.existsByNameIgnoreCaseAndState_Id(
+                request.getName(),
+                request.getStateId())) {
 
-                    logger.warn("State with id {} not found",
-                            request.getStateId());
-
-                    return new ResourceNotFoundException(
-                            "State with id "
-                                    + request.getStateId()
-                                    + " not found."
-                    );
-                });
-
-        destinationRepository
-                .findByNameIgnoreCaseAndState_Id(
-                        request.getName(),
-                        request.getStateId())
-                .ifPresent(existing -> {
-
-                    logger.warn(
-                            "Duplicate destination '{}' attempted for state '{}'",
-                            request.getName(),
-                            state.getName());
-
-                    throw new DuplicateResourceException(
-                            "Destination '"
-                                    + request.getName()
-                                    + "' already exists in state '"
-                                    + state.getName()
-                                    + "'.");
-                });
-
-        Set<Tag> tags = getTagsFromRequest(request);
-        Set<Experience> experiences = getExperiencesFromRequest(request);
-
-        Destination destination =
-                destinationMapper.toEntity(
-                        request,
-                        state,
-                        tags,
-                        experiences
-                );
-        Destination savedDestination =
-                destinationRepository.save(destination);
-
-        logger.info(
-                "Destination '{}' created successfully with id {}",
-                savedDestination.getName(),
-                savedDestination.getId());
-
-        return destinationMapper.toResponse(savedDestination);
-    }
-    @Override
-    public List<DestinationResponse> getAllDestinations(String state) {
-
-        logger.info("Fetching destinations");
-
-        if (state != null && !state.isBlank()) {
-
-            logger.info("Filtering destinations by state '{}'", state);
-
-            return destinationRepository
-                    .findAllByState_NameIgnoreCase(state)
-                    .stream()
-                    .map(destinationMapper::toResponse)
-                    .toList();
+            throw new DuplicateResourceException(
+                    "Destination already exists in this state.");
         }
 
+        State state = getState(request.getStateId());
+
+        Destination destination = mapper.toEntity(request, state);
+
+        Destination saved = destinationRepository.save(destination);
+
+        log.info("Destination created with id {}", saved.getId());
+
+        return mapper.toResponse(saved);
+    }
+
+    @Override
+    public DestinationResponse update(
+            Long id,
+            DestinationRequest request) {
+
+        log.info("Updating destination {}", id);
+
+        Destination destination = getDestination(id);
+
+        if (destinationRepository
+                .existsByNameIgnoreCaseAndState_IdAndIdNot(
+                        request.getName(),
+                        request.getStateId(),
+                        id)) {
+
+            throw new DuplicateResourceException(
+                    "Destination already exists in this state.");
+        }
+
+        State state = getState(request.getStateId());
+
+        mapper.updateEntity(destination, request, state);
+
+        Destination updated = destinationRepository.save(destination);
+
+        log.info("Destination {} updated", id);
+
+        return mapper.toResponse(updated);
+    }
+
+    @Override
+    public DestinationResponse getById(Long id) {
+
+        return mapper.toResponse(getDestination(id));
+    }
+
+    @Override
+    public List<DestinationResponse> getAll() {
+
         return destinationRepository
-                .findAllBy()
+                .findAllByOrderByDisplayOrderAscNameAsc()
                 .stream()
-                .map(destinationMapper::toResponse)
+                .map(mapper::toResponse)
                 .toList();
     }
 
     @Override
-    public DestinationResponse getDestinationById(Long id) {
+    public List<DestinationResponse> getByState(Long stateId) {
 
-        logger.info("Fetching destination with id {}", id);
-
-        Destination destination = destinationRepository
-                .findWithStateById(id)
-                .orElseThrow(() -> {
-
-                    logger.warn("Destination with id {} not found", id);
-
-                    return new ResourceNotFoundException(
-                            "Destination with id " + id + " not found."
-                    );
-                });
-
-        return destinationMapper.toResponse(destination);
+        return destinationRepository
+                .findAllByState_IdOrderByDisplayOrderAscNameAsc(stateId)
+                .stream()
+                .map(mapper::toResponse)
+                .toList();
     }
 
     @Override
-    public DestinationResponse updateDestination(Long id,
-                                                 DestinationRequest request) {
+    public List<DestinationResponse> getByType(
+            DestinationType type) {
 
-        logger.info("Updating destination with id {}", id);
-
-        Destination destination = destinationRepository
-                .findWithStateById(id)
-                .orElseThrow(() -> {
-
-                    logger.warn("Destination with id {} not found", id);
-
-                    return new ResourceNotFoundException(
-                            "Destination with id " + id + " not found."
-                    );
-                });
-
-        State state = stateRepository.findById(request.getStateId())
-                .orElseThrow(() -> {
-
-                    logger.warn("State with id {} not found",
-                            request.getStateId());
-
-                    return new ResourceNotFoundException(
-                            "State with id " + request.getStateId() + " not found."
-                    );
-                });
-
-        destinationRepository
-                .findByNameIgnoreCaseAndState_Id(
-                        request.getName(),
-                        request.getStateId())
-                .ifPresent(existing -> {
-
-                    if (!existing.getId().equals(id)) {
-
-                        logger.warn(
-                                "Duplicate destination '{}' attempted during update",
-                                request.getName());
-
-                        throw new DuplicateResourceException(
-                                "Destination '" + request.getName()
-                                        + "' already exists in state '"
-                                        + state.getName() + "'.");
-                    }
-                });
-
-        Set<Tag> tags = getTagsFromRequest(request);
-        Set<Experience> experiences = getExperiencesFromRequest(request);
-
-        destinationMapper.updateEntity(
-                destination,
-                request,
-                state,
-                tags,
-                experiences
-        );
-
-        Destination updatedDestination =
-                destinationRepository.save(destination);
-
-        logger.info("Destination '{}' updated successfully",
-                updatedDestination.getName());
-
-        return destinationMapper.toResponse(updatedDestination);
+        return destinationRepository
+                .findAllByTypeOrderByDisplayOrderAscNameAsc(type)
+                .stream()
+                .map(mapper::toResponse)
+                .toList();
     }
 
     @Override
-    public void deleteDestination(Long id) {
+    public List<DestinationResponse> getFeatured() {
 
-        logger.info("Deleting destination with id {}", id);
-
-        if (!destinationRepository.existsById(id)) {
-
-            logger.warn("Delete failed. Destination with id {} not found", id);
-
-            throw new ResourceNotFoundException(
-                    "Destination with id " + id + " not found."
-            );
-        }
-
-        destinationRepository.deleteById(id);
-
-        logger.info("Destination with id {} deleted successfully", id);
-    }
-
-    private Set<Tag> getTagsFromRequest(DestinationRequest request) {
-
-        if (request.getTagIds() == null || request.getTagIds().isEmpty()) {
-            return Set.of();
-        }
-
-        return request.getTagIds()
+        return destinationRepository
+                .findAllByFeaturedTrueOrderByDisplayOrderAsc()
                 .stream()
-                .map(id -> tagRepository.findById(id)
-                        .orElseThrow(() -> {
-
-                            logger.warn("Tag with id {} not found", id);
-
-                            return new ResourceNotFoundException(
-                                    "Tag with id " + id + " not found."
-                            );
-                        }))
-                .collect(Collectors.toSet());
+                .map(mapper::toResponse)
+                .toList();
     }
 
-    private Set<Experience> getExperiencesFromRequest(
-            DestinationRequest request) {
+    @Override
+    public List<DestinationResponse> getPopular() {
 
-        if (request.getExperienceIds() == null
-                || request.getExperienceIds().isEmpty()) {
-            return Set.of();
-        }
-
-        return request.getExperienceIds()
+        return destinationRepository
+                .findAllByPopularTrueOrderByDisplayOrderAsc()
                 .stream()
-                .map(id -> experienceRepository.findById(id)
-                        .orElseThrow(() -> {
-
-                            logger.warn(
-                                    "Experience with id {} not found",
-                                    id);
-
-                            return new ResourceNotFoundException(
-                                    "Experience with id "
-                                            + id
-                                            + " not found."
-                            );
-                        }))
-                .collect(Collectors.toSet());
+                .map(mapper::toResponse)
+                .toList();
     }
 
+    @Override
+    public void delete(Long id) {
+
+        Destination destination = getDestination(id);
+
+        destinationRepository.delete(destination);
+
+        log.info("Destination {} deleted", id);
+    }
+
+    private Destination getDestination(Long id) {
+
+        return destinationRepository.findById(id)
+                .orElseThrow(() ->
+                        new ResourceNotFoundException(
+                                "Destination not found with id: " + id));
+    }
+
+    private State getState(Long id) {
+
+        return stateRepository.findById(id)
+                .orElseThrow(() ->
+                        new ResourceNotFoundException(
+                                "State not found with id: " + id));
+    }
 }

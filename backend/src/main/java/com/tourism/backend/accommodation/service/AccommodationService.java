@@ -8,12 +8,12 @@ import java.util.List;
 
 public interface AccommodationService {
 
-    AccommodationResponse create(
-            AccommodationRequest request);
+    AccommodationResponse create(AccommodationRequest request);
 
     AccommodationResponse update(
             Long id,
-            AccommodationRequest request);
+            AccommodationRequest request
+    );
 
     AccommodationResponse getById(Long id);
 
@@ -21,15 +21,14 @@ public interface AccommodationService {
 
     List<AccommodationResponse> getByDestination(Long destinationId);
 
-    List<AccommodationResponse> getByType(
-            AccommodationType type);
+    List<AccommodationResponse> getByType(AccommodationType type);
 
-    List<AccommodationResponse> getByAvailable(
-            Boolean available);
+    List<AccommodationResponse> getByAvailable(Boolean available);
 
     List<AccommodationResponse> getByDestinationAndType(
             Long destinationId,
-            AccommodationType type);
+            AccommodationType type
+    );
 
     void delete(Long id);
 }

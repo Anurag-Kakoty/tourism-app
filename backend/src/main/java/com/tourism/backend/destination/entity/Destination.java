@@ -1,36 +1,43 @@
 package com.tourism.backend.destination.entity;
 
-import com.tourism.backend.experience.entity.Experience;
-import com.tourism.backend.state.entity.State;
 import com.tourism.backend.util.BaseEntity;
-
+import com.tourism.backend.state.entity.State;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import com.tourism.backend.tag.entity.Tag;
-
-import java.util.HashSet;
-import java.util.Set;
-
-import java.math.BigDecimal;
-
 @Entity
-@Table(name = "destinations")
+@Table(
+        name = "destinations",
+        uniqueConstraints = {
+                @UniqueConstraint(columnNames = {"name", "state_id"})
+        }
+)
 @Getter
 @Setter
 @NoArgsConstructor
 public class Destination extends BaseEntity {
 
-    @Column(nullable = false, length = 150)
+    @Column(nullable = false, length = 100)
     private String name;
 
-    @Column(length = 2000)
+    @Column(length = 200)
+    private String tagline;
+
+    @Column(length = 1000)
     private String description;
 
-    @Column(nullable = false,length=100)
+    @Column(length = 100)
     private String district;
+
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "state_id")
+    private State state;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private DestinationType type;
 
     @Column(nullable = false)
     private Double latitude;
@@ -38,32 +45,27 @@ public class Destination extends BaseEntity {
     @Column(nullable = false)
     private Double longitude;
 
-    @Column(nullable = false, length = 150)
-    private String bestSeason;
-
-    @Column(precision = 10, scale = 2)
-    private BigDecimal entryFee;
-
-    @Column(length=500)
+    @Column(length = 500)
     private String thumbnailUrl;
 
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "state_id", nullable = false)
-    private State state;
+    @Column(length = 500)
+    private String coverImageUrl;
 
-    @ManyToMany
-    @JoinTable(
-            name = "destination_tags",
-            joinColumns = @JoinColumn(name = "destination_id"),
-            inverseJoinColumns = @JoinColumn(name = "tag_id")
-    )
-    private Set<Tag> tags = new HashSet<>();
+    @Column(length = 100)
+    private String timezone;
 
-    @ManyToMany
-    @JoinTable(
-            name = "destination_experiences",
-            joinColumns = @JoinColumn(name = "destination_id"),
-            inverseJoinColumns = @JoinColumn(name = "experience_id")
-    )
-    private Set<Experience> experiences = new HashSet<>();
+    @Column(length = 100)
+    private String nearestAirport;
+
+    @Column(length = 100)
+    private String nearestRailwayStation;
+
+    @Column(nullable = false)
+    private Boolean featured = false;
+
+    @Column(nullable = false)
+    private Boolean popular = false;
+
+    @Column(nullable = false)
+    private Integer displayOrder = 0;
 }
