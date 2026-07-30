@@ -1,5 +1,6 @@
 package com.tourism.backend.guide.controller;
 
+import com.tourism.backend.constants.ApiPaths;
 import com.tourism.backend.guide.dto.GuideRequest;
 import com.tourism.backend.guide.dto.GuideResponse;
 import com.tourism.backend.guide.entity.Language;
@@ -14,7 +15,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/guides")
+@RequestMapping(ApiPaths.GUIDES)
 @RequiredArgsConstructor
 @Tag(name = "Guide", description = "Guide Management APIs")
 public class GuideController {
@@ -46,26 +47,21 @@ public class GuideController {
     @GetMapping
     @Operation(summary = "Get guides with optional filters")
     public List<GuideResponse> getGuides(
-
             @RequestParam(required = false) Long destinationId,
-
             @RequestParam(required = false) Boolean available,
-
             @RequestParam(required = false) Boolean providesTransport,
-
-            @RequestParam(required = false) Language language
-    ) {
+            @RequestParam(required = false) Language language) {
 
         if (destinationId != null) {
             return guideService.getGuidesByDestination(destinationId);
         }
 
-        if (available != null && available) {
-            return guideService.getAvailableGuides();
+        if (available != null) {
+            return guideService.getGuidesByAvailability(available);
         }
 
-        if (providesTransport != null && providesTransport) {
-            return guideService.getGuidesProvidingTransport();
+        if (providesTransport != null) {
+            return guideService.getGuidesByProvidesTransport(providesTransport);
         }
 
         if (language != null) {
