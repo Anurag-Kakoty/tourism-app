@@ -4,6 +4,8 @@ import com.tourism.backend.guide.entity.Guide;
 import com.tourism.backend.guide.entity.Language;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import java.util.List;
 import java.util.Optional;
@@ -36,21 +38,28 @@ public interface GuideRepository extends JpaRepository<Guide, Long> {
             "destination.state",
             "languages"
     })
-    List<Guide> findAllByAvailableTrueOrderByRatingDescNameAsc();
+    List<Guide> findAllByAvailableOrderByRatingDescNameAsc(Boolean available);
 
     @EntityGraph(attributePaths = {
             "destination",
             "destination.state",
             "languages"
     })
-    List<Guide> findAllByProvidesTransportTrueOrderByRatingDescNameAsc();
+    List<Guide> findAllByProvidesTransportOrderByRatingDescNameAsc(Boolean providesTransport);
 
+    @Query("""
+            SELECT DISTINCT g
+            FROM Guide g
+            JOIN g.languages l
+            WHERE l = :language
+            ORDER BY g.rating DESC, g.name ASC
+            """)
     @EntityGraph(attributePaths = {
             "destination",
             "destination.state",
             "languages"
     })
-    List<Guide> findAllByLanguagesContaining(Language language);
+    List<Guide> findAllByLanguage(@Param("language") Language language);
 
     boolean existsByPhone(String phone);
 

@@ -85,7 +85,7 @@ public class GuideServiceImpl implements GuideService {
 
         log.info("Guide updated with ID {}", id);
 
-        return guideMapper.toResponse(guide);
+        return guideMapper.toResponse(guideRepository.save(guide));
     }
 
     @Override
@@ -118,8 +118,8 @@ public class GuideServiceImpl implements GuideService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<GuideResponse> getAvailableGuides() {
-        return guideRepository.findAllByAvailableTrueOrderByRatingDescNameAsc()
+    public List<GuideResponse> getGuidesByAvailability(Boolean available) {
+        return guideRepository.findAllByAvailableOrderByRatingDescNameAsc(available)
                 .stream()
                 .map(guideMapper::toResponse)
                 .toList();
@@ -127,8 +127,8 @@ public class GuideServiceImpl implements GuideService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<GuideResponse> getGuidesProvidingTransport() {
-        return guideRepository.findAllByProvidesTransportTrueOrderByRatingDescNameAsc()
+    public List<GuideResponse> getGuidesByProvidesTransport(Boolean providesTransport) {
+        return guideRepository.findAllByProvidesTransportOrderByRatingDescNameAsc(providesTransport)
                 .stream()
                 .map(guideMapper::toResponse)
                 .toList();
@@ -137,7 +137,7 @@ public class GuideServiceImpl implements GuideService {
     @Override
     @Transactional(readOnly = true)
     public List<GuideResponse> getGuidesByLanguage(Language language) {
-        return guideRepository.findAllByLanguagesContaining(language)
+        return guideRepository.findAllByLanguage(language)
                 .stream()
                 .map(guideMapper::toResponse)
                 .toList();

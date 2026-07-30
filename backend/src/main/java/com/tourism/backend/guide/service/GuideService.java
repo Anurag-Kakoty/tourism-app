@@ -18,9 +18,9 @@ public interface GuideService {
 
     List<GuideResponse> getGuidesByDestination(Long destinationId);
 
-    List<GuideResponse> getAvailableGuides();
+    List<GuideResponse> getGuidesByAvailability(Boolean available);
 
-    List<GuideResponse> getGuidesProvidingTransport();
+    List<GuideResponse> getGuidesByProvidesTransport(Boolean providesTransport);
 
     List<GuideResponse> getGuidesByLanguage(Language language);
 
