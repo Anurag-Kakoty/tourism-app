@@ -1,8 +1,11 @@
 package com.tourism.backend.guide.dto;
 
+import com.tourism.backend.guide.entity.Language;
 import jakarta.validation.constraints.*;
 import lombok.Getter;
 import lombok.Setter;
+
+import java.util.Set;
 
 @Getter
 @Setter
@@ -24,9 +27,8 @@ public class GuideRequest {
     @Size(max = 100)
     private String email;
 
-    @NotBlank(message = "Languages are required.")
-    @Size(max = 300)
-    private String languages;
+    @NotEmpty(message = "At least one language is required.")
+    private Set<Language> languages;
 
     @NotNull(message = "Years of experience is required.")
     @PositiveOrZero
@@ -47,7 +49,7 @@ public class GuideRequest {
     @Size(max = 50)
     private String licenseNumber;
 
-    @NotNull(message = "Provide transport flag is required.")
+    @NotNull(message = "Provides transport is required.")
     private Boolean providesTransport;
 
     @Size(max = 500)

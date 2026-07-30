@@ -1,7 +1,10 @@
 package com.tourism.backend.guide.dto;
 
+import com.tourism.backend.guide.entity.Language;
 import lombok.Getter;
 import lombok.Setter;
+
+import java.util.Set;
 
 @Getter
 @Setter
@@ -17,7 +20,7 @@ public class GuideResponse {
 
     private String email;
 
-    private String languages;
+    private Set<Language> languages;
 
     private Integer yearsOfExperience;
 

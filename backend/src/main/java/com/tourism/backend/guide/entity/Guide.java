@@ -7,6 +7,9 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.util.HashSet;
+import java.util.Set;
+
 @Entity
 @Table(
         name = "guides",
@@ -33,8 +36,14 @@ public class Guide extends BaseEntity {
     @Column(nullable = false, length = 100)
     private String email;
 
-    @Column(nullable = false, length = 300)
-    private String languages;
+    @ElementCollection(fetch = FetchType.LAZY)
+    @CollectionTable(
+            name = "guide_languages",
+            joinColumns = @JoinColumn(name = "guide_id")
+    )
+    @Enumerated(EnumType.STRING)
+    @Column(name = "language", nullable = false)
+    private Set<Language> languages = new HashSet<>();
 
     @Column(nullable = false)
     private Integer yearsOfExperience;
