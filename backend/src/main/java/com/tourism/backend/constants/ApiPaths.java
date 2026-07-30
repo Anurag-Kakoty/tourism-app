@@ -19,4 +19,6 @@ public final class ApiPaths {
     public static final String EXPERIENCES = API + "/experiences";
 
     public static final String ACCOMMODATIONS = API + "/accommodations";
+
+    public static final String GUIDES = API + "/guides";
 }
