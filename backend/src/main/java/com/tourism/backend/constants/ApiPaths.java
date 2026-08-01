@@ -25,4 +25,6 @@ public final class ApiPaths {
     public static final String RESTAURANTS = API + "/restaurants";
 
     public static final String TRANSPORT = API + "/transport";
+
+    public static final String ITINERARIES = API + "/itineraries";
 }
