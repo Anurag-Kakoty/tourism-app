@@ -1,38 +1,30 @@
-import Section from "../../components/common/layout/Section";
-import Card from "../../components/common/display/Card";
-import Button from "../../components/common/inputs/Button";
+import Hero from "../../components/home/Hero";
+import SearchSection from "../../components/home/SearchSection";
+import StatesSection from "../../components/home/StatesSection";
+import FeaturedDestinations from "../../components/home/FeaturedDestinations";
+import ExperiencesSection from "../../components/home/ExperiencesSection";
+import FestivalsSection from "../../components/home/FestivalsSection";
+import WhyChooseUsSection from "../../components/home/WhyChooseUsSection";
+import CTASection from "../../components/home/CTASection";
 
 export default function Home() {
   return (
     <>
-      <Section
-        title="Discover Incredible India"
-        subtitle="Find destinations, festivals, experiences and unforgettable journeys."
-      >
-        <Card className="p-8">
+      <Hero />
 
-          <h3 className="text-2xl font-semibold">
-            Welcome!
-          </h3>
+      <SearchSection />
 
-          <p className="mt-4 text-slate-600">
-            This is our first reusable card.
-          </p>
+      <StatesSection />
 
-          <div className="mt-6 flex gap-4">
+      <FeaturedDestinations />
 
-            <Button>
-              Explore
-            </Button>
+      <ExperiencesSection />
 
-            <Button variant="outline">
-              Learn More
-            </Button>
+      <FestivalsSection />
 
-          </div>
+      <WhyChooseUsSection />
 
-        </Card>
-      </Section>
+      <CTASection />
     </>
   );
 }
