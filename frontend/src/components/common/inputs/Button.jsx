@@ -6,10 +6,11 @@ export default function Button({
   type = "button",
   onClick,
   to,
+  disabled = false,
   className = "",
 }) {
   const baseClasses =
-    "inline-flex items-center justify-center rounded-lg px-5 py-3 font-medium transition-all duration-200";
+    "inline-flex items-center justify-center rounded-xl px-5 py-3 font-medium transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:ring-offset-2";
 
   const variants = {
     primary:
@@ -22,7 +23,12 @@ export default function Button({
       "border border-[var(--color-primary)] text-[var(--color-primary)] hover:bg-[var(--color-primary)] hover:text-white",
   };
 
-  const classes = `${baseClasses} ${variants[variant]} ${className}`;
+  const classes = `
+    ${baseClasses}
+    ${variants[variant] || variants.primary}
+    ${disabled ? "cursor-not-allowed opacity-50" : ""}
+    ${className}
+  `;
 
   if (to) {
     return (
@@ -33,7 +39,12 @@ export default function Button({
   }
 
   return (
-    <button type={type} onClick={onClick} className={classes}>
+    <button
+      type={type}
+      onClick={onClick}
+      disabled={disabled}
+      className={classes}
+    >
       {children}
     </button>
   );

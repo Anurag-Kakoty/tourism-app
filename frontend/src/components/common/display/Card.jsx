@@ -5,13 +5,14 @@ export default function Card({
   return (
     <div
       className={`
-        rounded-xl
+        overflow-hidden
+        rounded-2xl
         bg-white
         shadow-md
         transition-all
         duration-300
-        hover:-translate-y-1
-        hover:shadow-xl
+        hover:-translate-y-2
+        hover:shadow-2xl
         ${className}
       `}
     >

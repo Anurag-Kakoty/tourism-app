@@ -1,37 +1,39 @@
 import Card from "../common/display/Card";
 import Button from "../common/inputs/Button";
+import Badge from "../common/display/Badge";
 
 export default function PlaceCard({ place }) {
   return (
-    <Card className="overflow-hidden">
+    <Card>
+      <div className="overflow-hidden">
+        <img
+          src={place.image}
+          alt={place.name}
+          className="h-56 w-full object-cover transition-transform duration-300 hover:scale-105"
+        />
+      </div>
 
-      <img
-        src={place.image}
-        alt={place.name}
-        className="h-56 w-full object-cover"
-      />
-
-      <div className="p-5">
-
-        <div className="flex items-center justify-between">
-
-          <h3 className="text-xl font-bold">
+      <div className="p-6">
+        <div className="flex items-start justify-between gap-4">
+          <h3 className="text-xl font-bold leading-tight">
             {place.name}
           </h3>
 
-          <span className="text-yellow-500 font-semibold">
-            ★ {place.rating}
-          </span>
-
+          <div className="flex items-center gap-1 whitespace-nowrap font-semibold text-yellow-500">
+            <span>★</span>
+            <span>{place.rating}</span>
+          </div>
         </div>
 
-        <p className="mt-1 text-slate-500">
+        <p className="mt-2 text-slate-500">
           {place.state}
         </p>
 
-        <span className="mt-4 inline-block rounded-full bg-emerald-100 px-3 py-1 text-sm font-medium text-emerald-700">
-          {place.category}
-        </span>
+        <div className="mt-4">
+          <Badge>
+            {place.category}
+          </Badge>
+        </div>
 
         <Button
           to={`/places/${place.id}`}
@@ -39,9 +41,7 @@ export default function PlaceCard({ place }) {
         >
           View Details
         </Button>
-
       </div>
-
     </Card>
   );
 }
