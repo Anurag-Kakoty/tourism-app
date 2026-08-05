@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { HiOutlineBars3, HiOutlineXMark } from "react-icons/hi2";
 
 import Logo from "./Logo";
@@ -10,9 +10,28 @@ import Container from "../../common/layout/Container";
 
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setScrolled(window.scrollY > 10);
+    };
+
+    window.addEventListener("scroll", handleScroll);
+
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
 
   return (
-    <header className="sticky top-0 z-50 border-b border-slate-200 bg-white/90 backdrop-blur-md">
+    <header
+      className={`
+        sticky top-0 z-50
+        border-b border-slate-200
+        bg-white/90 backdrop-blur-md
+        transition-shadow duration-300
+        ${scrolled ? "shadow-md" : ""}
+      `}
+    >
       <Container className="flex h-20 items-center justify-between">
         <Logo />
 
