@@ -9,7 +9,7 @@ export default function DesktopNav() {
           key={item.path}
           to={item.path}
           className={({ isActive }) =>
-            `relative text-sm font-medium transition-colors duration-300 ${
+            `group relative text-sm font-medium transition-colors duration-300 ${
               isActive
                 ? "text-[var(--color-primary)]"
                 : "text-slate-600 hover:text-[var(--color-primary)]"
@@ -21,9 +21,21 @@ export default function DesktopNav() {
               {item.label}
 
               <span
-                className={`absolute -bottom-2 left-0 h-0.5 rounded-full bg-[var(--color-primary)] transition-all duration-300 ${
-                  isActive ? "w-full" : "w-0"
-                }`}
+                className={`
+                  absolute
+                  -bottom-2
+                  left-0
+                  h-0.5
+                  rounded-full
+                  bg-[var(--color-primary)]
+                  transition-all
+                  duration-300
+                  ${
+                    isActive
+                      ? "w-full"
+                      : "w-0 group-hover:w-full"
+                  }
+                `}
               />
             </>
           )}
