@@ -6,7 +6,18 @@ export default function MobileNav({ isOpen, onClose }) {
   if (!isOpen) return null;
 
   return (
-    <div className="lg:hidden border-t border-slate-200 bg-white">
+    <div
+      className={`
+        lg:hidden
+        overflow-hidden
+        border-t
+        border-slate-200
+        bg-white
+        transition-all
+        duration-300
+        ${isOpen ? "max-h-96" : "max-h-0"}
+      `}
+    >
       <nav className="flex flex-col p-6">
 
         {navigation.map((item) => (
