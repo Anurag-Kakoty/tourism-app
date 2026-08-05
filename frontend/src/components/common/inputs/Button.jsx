@@ -21,6 +21,9 @@ export default function Button({
 
     outline:
       "border border-[var(--color-primary)] text-[var(--color-primary)] hover:bg-[var(--color-primary)] hover:text-white",
+
+    outlineLight:
+      "bg-white text-slate-900 border border-white hover:bg-slate-100 hover:border-slate-100",
   };
 
   const classes = `
@@ -36,6 +39,8 @@ export default function Button({
         {children}
       </Link>
     );
+
+
   }
 
   return (
