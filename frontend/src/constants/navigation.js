@@ -4,6 +4,10 @@ const navigation = [
     path: "/",
   },
   {
+    label: "States",
+    path: "/states",
+  },
+  {
     label: "Places",
     path: "/places",
   },
