@@ -4,34 +4,32 @@ import Button from "../common/inputs/Button";
 export default function StateCard({ state }) {
   return (
     <Card className="overflow-hidden">
+      <img
+        src={state.thumbnailUrl}
+        alt={state.name}
+        className="h-56 w-full object-cover"
+      />
 
-      <div className="h-48 overflow-hidden">
-        <img
-          src={state.image}
-          alt={state.name}
-          className="h-full w-full object-cover transition-transform duration-300 hover:scale-105"
-        />
-      </div>
-
-      <div className="p-6">
-
-        <h3 className="text-xl font-bold">
+      <div className="p-5">
+        <h3 className="text-2xl font-bold">
           {state.name}
         </h3>
 
-        <p className="mt-2 text-slate-600">
-          {state.destinations} destinations
+        <p className="mt-2 text-slate-500">
+          Capital: {state.capital}
+        </p>
+
+        <p className="mt-4 line-clamp-3 text-slate-600">
+          {state.description}
         </p>
 
         <Button
-          to={`/places?state=${encodeURIComponent(state.name)}`}
+          to={`/states/${state.id}`}
           className="mt-6 w-full"
         >
-          Explore
+          Explore State
         </Button>
-
       </div>
-
     </Card>
   );
 }
