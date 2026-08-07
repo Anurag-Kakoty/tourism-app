@@ -1,6 +1,10 @@
 import { useEffect, useState } from "react";
 
 import Section from "../../components/common/layout/Section";
+import LoadingSpinner from "../../components/common/feedback/LoadingSpinner";
+import ErrorMessage from "../../components/common/feedback/ErrorMessage";
+import EmptyState from "../../components/common/feedback/EmptyState";
+
 import PlaceCard from "../../components/places/PlaceCard";
 
 import placeService from "../../services/placeService";
@@ -17,9 +21,11 @@ export default function Places() {
   async function loadPlaces() {
     try {
       setLoading(true);
+      setError("");
 
       const data = await placeService.getAll();
-      console.log(data);
+
+      console.log("Attractions:", data);
 
       setPlaces(data);
     } catch (err) {
@@ -33,7 +39,7 @@ export default function Places() {
   if (loading) {
     return (
       <Section title="Places">
-        <p>Loading attractions...</p>
+        <LoadingSpinner message="Loading attractions..." />
       </Section>
     );
   }
@@ -41,7 +47,18 @@ export default function Places() {
   if (error) {
     return (
       <Section title="Places">
-        <p className="text-red-600">{error}</p>
+        <ErrorMessage message={error} />
+      </Section>
+    );
+  }
+
+  if (places.length === 0) {
+    return (
+      <Section
+        title="Discover Places"
+        subtitle="Explore destinations from every corner of India."
+      >
+        <EmptyState message="No attractions found." />
       </Section>
     );
   }
