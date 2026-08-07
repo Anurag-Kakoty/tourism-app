@@ -10,6 +10,8 @@ import Guides from "../pages/Guides/Guides";
 import Transport from "../pages/Transport/Transport";
 import Itinerary from "../pages/Itinerary/Itinerary";
 import NotFound from "../pages/NotFound/NotFound";
+import States from "../pages/States/States";
+import StateDetails from "../pages/States/StateDetails";
 
 export default function AppRoutes() {
   return (
@@ -17,6 +19,8 @@ export default function AppRoutes() {
       <Route path="/" element={<Home />} />
       <Route path="/places" element={<Places />} />
       <Route path="/places/:id" element={<PlaceDetails />} />
+      <Route path="/states" element={<States />}/>
+      <Route path="/states/:id" element={<StateDetails />}/>
       <Route path="/experiences" element={<Experiences />} />
       <Route path="/festivals" element={<Festivals />} />
       <Route path="/stay" element={<Stay />} />
