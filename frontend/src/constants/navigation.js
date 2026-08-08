@@ -8,6 +8,10 @@ const navigation = [
     path: "/states",
   },
   {
+    label: "Destinations",
+    path: "/destinations",
+  },
+  {
     label: "Places",
     path: "/places",
   },
