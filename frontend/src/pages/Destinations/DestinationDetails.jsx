@@ -4,13 +4,19 @@ import { useParams } from "react-router-dom";
 import Section from "../../components/common/layout/Section";
 import LoadingSpinner from "../../components/common/feedback/LoadingSpinner";
 import ErrorMessage from "../../components/common/feedback/ErrorMessage";
+import EmptyState from "../../components/common/feedback/EmptyState";
 
 import destinationService from "../../services/destinationService";
+import placeService from "../../services/placeService";
+
+import PlaceCard from "../../components/places/PlaceCard";
 
 export default function DestinationDetails() {
   const { id } = useParams();
 
   const [destination, setDestination] = useState(null);
+  const [attractions, setAttractions] = useState([]);
+
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
@@ -23,9 +29,13 @@ export default function DestinationDetails() {
       setLoading(true);
       setError("");
 
-      const data = await destinationService.getById(id);
+      const [destinationData, attractionData] = await Promise.all([
+        destinationService.getById(id),
+        placeService.getByDestination(id),
+      ]);
 
-      setDestination(data);
+      setDestination(destinationData);
+      setAttractions(attractionData);
     } catch (err) {
       console.error(err);
       setError("Unable to load destination.");
@@ -101,14 +111,18 @@ export default function DestinationDetails() {
 
             <div className="mt-5 space-y-4">
               <div>
-                <p className="text-sm text-slate-500">District</p>
+                <p className="text-sm text-slate-500">
+                  District
+                </p>
                 <p className="font-medium">
                   {destination.district}
                 </p>
               </div>
 
               <div>
-                <p className="text-sm text-slate-500">Type</p>
+                <p className="text-sm text-slate-500">
+                  Type
+                </p>
                 <p className="font-medium">
                   {destination.type.replaceAll("_", " ")}
                 </p>
@@ -145,38 +159,22 @@ export default function DestinationDetails() {
         </div>
       </Section>
 
-      <Section title="Explore This Destination">
-        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          <div className="rounded-2xl border border-[var(--color-border)] bg-white p-6">
-            <h3 className="text-xl font-bold">
-              Attractions
-            </h3>
-
-            <p className="mt-2 text-slate-600">
-              Discover places and landmarks to visit.
-            </p>
+      <Section
+        title="Top Attractions"
+        subtitle={`Places to explore in ${destination.name}.`}
+      >
+        {attractions.length === 0 ? (
+          <EmptyState message="No attractions found for this destination." />
+        ) : (
+          <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
+            {attractions.map((attraction) => (
+              <PlaceCard
+                key={attraction.id}
+                place={attraction}
+              />
+            ))}
           </div>
-
-          <div className="rounded-2xl border border-[var(--color-border)] bg-white p-6">
-            <h3 className="text-xl font-bold">
-              Experiences
-            </h3>
-
-            <p className="mt-2 text-slate-600">
-              Find activities and experiences available here.
-            </p>
-          </div>
-
-          <div className="rounded-2xl border border-[var(--color-border)] bg-white p-6">
-            <h3 className="text-xl font-bold">
-              Festivals
-            </h3>
-
-            <p className="mt-2 text-slate-600">
-              Explore festivals and cultural events.
-            </p>
-          </div>
-        </div>
+        )}
       </Section>
     </>
   );
