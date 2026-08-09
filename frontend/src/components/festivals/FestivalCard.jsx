@@ -1,34 +1,38 @@
 import Card from "../common/display/Card";
-import Button from "../common/inputs/Button";
 import Badge from "../common/display/Badge";
+import Button from "../common/inputs/Button";
 
 export default function FestivalCard({ festival }) {
   return (
-    <Card className="p-6 text-center">
-      <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-orange-100 text-5xl">
-        {festival.icon}
-      </div>
+    <Card className="overflow-hidden">
+      {festival.imageUrl && (
+        <img
+          src={festival.imageUrl}
+          alt={festival.name}
+          className="h-56 w-full object-cover"
+        />
+      )}
 
-      <h3 className="mt-6 text-xl font-bold leading-tight">
-        {festival.name}
-      </h3>
+      <div className="p-5">
+        <h3 className="text-2xl font-bold">
+          {festival.name}
+        </h3>
 
-      <p className="mt-2 text-slate-600">
-        {festival.state}
-      </p>
-
-      <div className="mt-4">
-        <Badge className="bg-orange-100 text-orange-700">
-          {festival.month}
+        <Badge variant="accent" className="mt-3">
+          {festival.category}
         </Badge>
-      </div>
 
-      <Button
-        to="/festivals"
-        className="mt-6 w-full"
-      >
-        View Festival
-      </Button>
+        <p className="mt-4 line-clamp-3 text-slate-600">
+          {festival.description}
+        </p>
+
+        <Button
+          to={`/festivals/${festival.id}`}
+          className="mt-6 w-full"
+        >
+          View Festival
+        </Button>
+      </div>
     </Card>
   );
 }

@@ -1,14 +1,17 @@
 import Card from "../common/display/Card";
+import Badge from "../common/display/Badge";
 import Button from "../common/inputs/Button";
 
 export default function DestinationCard({ destination }) {
   return (
     <Card className="overflow-hidden">
-      <img
-        src={destination.thumbnailUrl}
-        alt={destination.name}
-        className="h-56 w-full object-cover"
-      />
+      {destination.thumbnailUrl && (
+        <img
+          src={destination.thumbnailUrl}
+          alt={destination.name}
+          className="h-56 w-full object-cover"
+        />
+      )}
 
       <div className="p-5">
         <div className="flex items-start justify-between gap-3">
@@ -17,9 +20,9 @@ export default function DestinationCard({ destination }) {
           </h3>
 
           {destination.featured && (
-            <span className="shrink-0 rounded-full bg-emerald-100 px-3 py-1 text-xs font-semibold text-emerald-700">
+            <Badge className="shrink-0 text-xs">
               Featured
-            </span>
+            </Badge>
           )}
         </div>
 
@@ -31,9 +34,9 @@ export default function DestinationCard({ destination }) {
           {destination.stateName}
         </p>
 
-        <span className="mt-4 inline-block rounded-full bg-sky-100 px-3 py-1 text-sm font-medium text-sky-700">
+        <Badge variant="secondary" className="mt-4">
           {destination.type.replaceAll("_", " ")}
-        </span>
+        </Badge>
 
         <p className="mt-4 line-clamp-3 text-slate-600">
           {destination.description}
