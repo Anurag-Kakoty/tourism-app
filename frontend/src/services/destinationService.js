@@ -11,6 +11,16 @@ const destinationService = {
     const response = await api.get(`${API.DESTINATIONS}/${id}`);
     return response.data;
   },
+
+  async getByState(stateId) {
+    const response = await api.get(API.DESTINATIONS, {
+      params: {
+        stateId,
+      },
+    });
+
+    return response.data;
+  },
 };
 
 export default destinationService;
