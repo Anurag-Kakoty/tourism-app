@@ -11,6 +11,16 @@ const placeService = {
     const response = await api.get(`${API.ATTRACTIONS}/${id}`);
     return response.data;
   },
+
+  async getByDestination(destinationId) {
+    const response = await api.get(API.ATTRACTIONS, {
+      params: {
+        destinationId,
+      },
+    });
+
+    return response.data;
+  },
 };
 
 export default placeService;
