@@ -6,6 +6,7 @@ import PlaceDetails from "../pages/Places/PlaceDetails";
 import Experiences from "../pages/Experiences/Experiences";
 import Festivals from "../pages/Festivals/Festivals";
 import FestivalDetails from "../pages/Festivals/FestivalDetails";
+import FestivalCalendar from "../pages/Festivals/FestivalCalendar";
 import Stay from "../pages/Stay/Stay";
 import Guides from "../pages/Guides/Guides";
 import Transport from "../pages/Transport/Transport";
@@ -29,6 +30,7 @@ export default function AppRoutes() {
       <Route path="/experiences" element={<Experiences />} />
       <Route path="/festivals" element={<Festivals />} />
       <Route path="/festivals/:id" element={<FestivalDetails />}/>
+      <Route path="/festival-calendar" element={<FestivalCalendar />}/>
       <Route path="/stay" element={<Stay />} />
       <Route path="/guides" element={<Guides />} />
       <Route path="/transport" element={<Transport />} />
