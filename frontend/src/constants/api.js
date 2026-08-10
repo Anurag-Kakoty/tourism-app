@@ -3,6 +3,7 @@ const API = {
   DESTINATIONS: "/destinations",
   STATES: "/states",
   FESTIVALS: "/festivals",
+  FESTIVAL_OCCURRENCES: "/festival-occurrences",
   EXPERIENCES: "/experiences",
   ACCOMMODATIONS: "/accommodations",
   GUIDES: "/guides",
