@@ -57,6 +57,10 @@ export default function Festivals() {
       <Section
         title="Festivals of India"
         subtitle="Discover the cultural celebrations and traditions of India."
+        action={{
+          label: "View Festival Calendar",
+          to: "/festival-calendar",
+        }}
       >
         <EmptyState message="No festivals found." />
       </Section>
@@ -67,6 +71,10 @@ export default function Festivals() {
     <Section
       title="Festivals of India"
       subtitle="Discover the cultural celebrations and traditions of India."
+      action={{
+        label: "View Festival Calendar",
+        to: "/festival-calendar",
+      }}
     >
       <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
         {festivals.map((festival) => (
