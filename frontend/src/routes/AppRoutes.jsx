@@ -12,6 +12,7 @@ import Stay from "../pages/Stay/Stay";
 import StayDetails from "../pages/Stay/StayDetails";
 import Guides from "../pages/Guides/Guides";
 import Transport from "../pages/Transport/Transport";
+import TransportDetails from "../pages/Transport/TransportDetails";
 import Itinerary from "../pages/Itinerary/Itinerary";
 import NotFound from "../pages/NotFound/NotFound";
 import States from "../pages/States/States";
@@ -38,6 +39,7 @@ export default function AppRoutes() {
       <Route path="/stay/:id" element={<StayDetails />}/>
       <Route path="/guides" element={<Guides />} />
       <Route path="/transport" element={<Transport />} />
+      <Route path="/transport/:id" element={<TransportDetails />} />
       <Route path="/itinerary" element={<Itinerary />} />
 
       <Route path="*" element={<NotFound />} />
