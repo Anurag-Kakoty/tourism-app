@@ -7,7 +7,7 @@ const API = {
   EXPERIENCES: "/experiences",
   ACCOMMODATIONS: "/accommodations",
   GUIDES: "/guides",
-  TRANSPORTS: "/transports",
+  TRANSPORT: "/transport",
   ITINERARIES: "/itineraries",
 };
 
