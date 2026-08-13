@@ -8,14 +8,17 @@ import EmptyState from "../../components/common/feedback/EmptyState";
 
 import destinationService from "../../services/destinationService";
 import placeService from "../../services/placeService";
+import stayService from "../../services/stayService";
 
 import PlaceCard from "../../components/places/PlaceCard";
+import StayCard from "../../components/stay/StayCard";
 
 export default function DestinationDetails() {
   const { id } = useParams();
 
   const [destination, setDestination] = useState(null);
   const [attractions, setAttractions] = useState([]);
+  const [stays, setStays] = useState([]);
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -29,13 +32,19 @@ export default function DestinationDetails() {
       setLoading(true);
       setError("");
 
-      const [destinationData, attractionData] = await Promise.all([
+      const [
+        destinationData,
+        attractionData,
+        stayData,
+      ] = await Promise.all([
         destinationService.getById(id),
         placeService.getByDestination(id),
+        stayService.getByDestination(id),
       ]);
 
       setDestination(destinationData);
       setAttractions(attractionData);
+      setStays(stayData);
     } catch (err) {
       console.error(err);
       setError("Unable to load destination.");
@@ -70,6 +79,7 @@ export default function DestinationDetails() {
 
   return (
     <>
+      {/* Destination Hero */}
       <section className="relative">
         <img
           src={destination.coverImageUrl}
@@ -96,6 +106,7 @@ export default function DestinationDetails() {
         </div>
       </section>
 
+      {/* About */}
       <Section title="About the Destination">
         <div className="grid gap-10 lg:grid-cols-3">
           <div className="lg:col-span-2">
@@ -159,6 +170,7 @@ export default function DestinationDetails() {
         </div>
       </Section>
 
+      {/* Attractions */}
       <Section
         title="Top Attractions"
         subtitle={`Places to explore in ${destination.name}.`}
@@ -171,6 +183,25 @@ export default function DestinationDetails() {
               <PlaceCard
                 key={attraction.id}
                 place={attraction}
+              />
+            ))}
+          </div>
+        )}
+      </Section>
+
+      {/* Stays */}
+      <Section
+        title="Places to Stay"
+        subtitle={`Find places to stay in ${destination.name}.`}
+      >
+        {stays.length === 0 ? (
+          <EmptyState message="No stays found for this destination." />
+        ) : (
+          <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
+            {stays.map((stay) => (
+              <StayCard
+                key={stay.id}
+                stay={stay}
               />
             ))}
           </div>
