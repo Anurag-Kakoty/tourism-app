@@ -9,9 +9,11 @@ import EmptyState from "../../components/common/feedback/EmptyState";
 import destinationService from "../../services/destinationService";
 import placeService from "../../services/placeService";
 import stayService from "../../services/stayService";
+import transportService from "../../services/transportService";
 
 import PlaceCard from "../../components/places/PlaceCard";
 import StayCard from "../../components/stay/StayCard";
+import TransportCard from "../../components/transport/TransportCard";
 
 export default function DestinationDetails() {
   const { id } = useParams();
@@ -19,6 +21,7 @@ export default function DestinationDetails() {
   const [destination, setDestination] = useState(null);
   const [attractions, setAttractions] = useState([]);
   const [stays, setStays] = useState([]);
+  const [transportOptions, setTransportOptions] = useState([]);
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -36,15 +39,18 @@ export default function DestinationDetails() {
         destinationData,
         attractionData,
         stayData,
+        transportData,
       ] = await Promise.all([
         destinationService.getById(id),
         placeService.getByDestination(id),
         stayService.getByDestination(id),
+        transportService.getByDestination(id),
       ]);
 
       setDestination(destinationData);
       setAttractions(attractionData);
       setStays(stayData);
+      setTransportOptions(transportData);
     } catch (err) {
       console.error(err);
       setError("Unable to load destination.");
@@ -202,6 +208,25 @@ export default function DestinationDetails() {
               <StayCard
                 key={stay.id}
                 stay={stay}
+              />
+            ))}
+          </div>
+        )}
+      </Section>
+
+      {/* Transport */}
+      <Section
+        title="Transport"
+        subtitle={`Explore ways to reach and travel to ${destination.name}.`}
+      >
+        {transportOptions.length === 0 ? (
+          <EmptyState message="No transport options found for this destination." />
+        ) : (
+          <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
+            {transportOptions.map((transport) => (
+              <TransportCard
+                key={transport.id}
+                transport={transport}
               />
             ))}
           </div>
