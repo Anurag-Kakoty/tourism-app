@@ -11,6 +11,7 @@ import FestivalCalendar from "../pages/Festivals/FestivalCalendar";
 import Stay from "../pages/Stay/Stay";
 import StayDetails from "../pages/Stay/StayDetails";
 import Guides from "../pages/Guides/Guides";
+import GuidesDetails from "../pages/Guides/GuideDetails";
 import Transport from "../pages/Transport/Transport";
 import TransportDetails from "../pages/Transport/TransportDetails";
 import Itinerary from "../pages/Itinerary/Itinerary";
@@ -19,6 +20,7 @@ import States from "../pages/States/States";
 import StateDetails from "../pages/States/StateDetails";
 import Destinations from "../pages/Destinations/Destinations";
 import DestinationDetails from "../pages/Destinations/DestinationDetails";
+import GuideDetails from "../pages/Guides/GuideDetails";
 
 export default function AppRoutes() {
   return (
@@ -38,6 +40,7 @@ export default function AppRoutes() {
       <Route path="/stay" element={<Stay />} />
       <Route path="/stay/:id" element={<StayDetails />}/>
       <Route path="/guides" element={<Guides />} />
+      <Route path="/guides/:id" element={<GuideDetails />} />
       <Route path="/transport" element={<Transport />} />
       <Route path="/transport/:id" element={<TransportDetails />} />
       <Route path="/itinerary" element={<Itinerary />} />
