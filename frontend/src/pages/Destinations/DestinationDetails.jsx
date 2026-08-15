@@ -10,10 +10,12 @@ import destinationService from "../../services/destinationService";
 import placeService from "../../services/placeService";
 import stayService from "../../services/stayService";
 import transportService from "../../services/transportService";
+import guideService from "../../services/guideService";
 
 import PlaceCard from "../../components/places/PlaceCard";
 import StayCard from "../../components/stay/StayCard";
 import TransportCard from "../../components/transport/TransportCard";
+import GuideCard from "../../components/guides/GuideCard";
 
 export default function DestinationDetails() {
   const { id } = useParams();
@@ -22,6 +24,7 @@ export default function DestinationDetails() {
   const [attractions, setAttractions] = useState([]);
   const [stays, setStays] = useState([]);
   const [transportOptions, setTransportOptions] = useState([]);
+  const [guides, setGuides] = useState([]);
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -40,17 +43,20 @@ export default function DestinationDetails() {
         attractionData,
         stayData,
         transportData,
+        guideData,
       ] = await Promise.all([
         destinationService.getById(id),
         placeService.getByDestination(id),
         stayService.getByDestination(id),
         transportService.getByDestination(id),
+        guideService.getByDestination(id),
       ]);
 
       setDestination(destinationData);
       setAttractions(attractionData);
       setStays(stayData);
       setTransportOptions(transportData);
+      setGuides(guideData);
     } catch (err) {
       console.error(err);
       setError("Unable to load destination.");
@@ -227,6 +233,25 @@ export default function DestinationDetails() {
               <TransportCard
                 key={transport.id}
                 transport={transport}
+              />
+            ))}
+          </div>
+        )}
+      </Section>
+
+      {/* Guides */}
+      <Section
+        title="Tour Guides"
+        subtitle={`Find local guides for exploring ${destination.name}.`}
+      >
+        {guides.length === 0 ? (
+          <EmptyState message="No guides found for this destination." />
+        ) : (
+          <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
+            {guides.map((guide) => (
+              <GuideCard
+                key={guide.id}
+                guide={guide}
               />
             ))}
           </div>
