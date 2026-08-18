@@ -17,6 +17,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import com.tourism.backend.attraction.specification.AttractionSpecification;
+import org.springframework.data.jpa.domain.Specification;
 
 import java.util.List;
 import java.util.Set;
@@ -111,27 +113,48 @@ public class AttractionServiceImpl implements AttractionService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<AttractionResponse> getAllAttractions(Long destinationId) {
+    public List<AttractionResponse> getAllAttractions(
+            Long stateId,
+            Long destinationId,
+            Long experienceId,
+            Long tagId,
+            Boolean featured) {
 
-        logger.info("Fetching attractions");
+        logger.info(
+                "Fetching attractions with filters: " +
+                        "stateId={}, destinationId={}, " +
+                        "experienceId={}, tagId={}, featured={}",
+                stateId,
+                destinationId,
+                experienceId,
+                tagId,
+                featured
+        );
 
-        if (destinationId != null) {
-
-            logger.info(
-                    "Filtering attractions by destination {}",
-                    destinationId);
-
-            return attractionRepository
-                    .findAllByDestination_IdOrderByDisplayOrderAscNameAsc(
-                            destinationId)
-                    .stream()
-                    .map(attractionMapper::toResponse)
-                    .toList();
-        }
+        Specification<Attraction> specification =
+                Specification
+                        .where(AttractionSpecification.hasStateId(stateId))
+                        .and(AttractionSpecification.hasDestinationId(destinationId))
+                        .and(AttractionSpecification.hasExperienceId(experienceId))
+                        .and(AttractionSpecification.hasTagId(tagId))
+                        .and(AttractionSpecification.isFeatured(featured));
 
         return attractionRepository
-                .findAllByOrderByDisplayOrderAscNameAsc()
+                .findAll(specification)
                 .stream()
+                .sorted(
+                        java.util.Comparator
+                                .comparing(
+                                        Attraction::getDisplayOrder,
+                                        java.util.Comparator.nullsLast(
+                                                java.util.Comparator.naturalOrder()
+                                        )
+                                )
+                                .thenComparing(
+                                        Attraction::getName,
+                                        String.CASE_INSENSITIVE_ORDER
+                                )
+                )
                 .map(attractionMapper::toResponse)
                 .toList();
     }

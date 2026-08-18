@@ -45,26 +45,74 @@ public class AttractionController {
     }
 
     @Operation(
-            summary = "Retrieve all attractions or filter by destination",
+            summary = "Retrieve attractions with optional filters",
             description = """
-                    Returns all attractions.
+                Returns attractions with optional dynamic filters.
 
-                    Optionally filter by destination:
+                Available filters:
 
-                    /api/attractions?destinationId=1
-                    """
+                /api/attractions?stateId=1
+
+                /api/attractions?destinationId=1
+
+                /api/attractions?experienceId=1
+
+                /api/attractions?tagId=1
+
+                /api/attractions?featured=true
+
+                Multiple filters can be combined:
+
+                /api/attractions?destinationId=1&experienceId=1
+
+                /api/attractions?stateId=1&tagId=1&featured=true
+                """
     )
     @GetMapping
     public List<AttractionResponse> getAllAttractions(
+
+            @Parameter(
+                    description = "Filter attractions by state ID",
+                    example = "1"
+            )
+            @RequestParam(required = false)
+            Long stateId,
 
             @Parameter(
                     description = "Filter attractions by destination ID",
                     example = "1"
             )
             @RequestParam(required = false)
-            Long destinationId) {
+            Long destinationId,
 
-        return attractionService.getAllAttractions(destinationId);
+            @Parameter(
+                    description = "Filter attractions by experience ID",
+                    example = "1"
+            )
+            @RequestParam(required = false)
+            Long experienceId,
+
+            @Parameter(
+                    description = "Filter attractions by tag ID",
+                    example = "1"
+            )
+            @RequestParam(required = false)
+            Long tagId,
+
+            @Parameter(
+                    description = "Filter featured attractions",
+                    example = "true"
+            )
+            @RequestParam(required = false)
+            Boolean featured) {
+
+        return attractionService.getAllAttractions(
+                stateId,
+                destinationId,
+                experienceId,
+                tagId,
+                featured
+        );
     }
 
     @Operation(

@@ -7,9 +7,16 @@ import java.util.List;
 
 public interface AttractionService {
 
-    AttractionResponse createAttraction(AttractionRequest request);
+    AttractionResponse createAttraction(
+            AttractionRequest request);
 
-    List<AttractionResponse> getAllAttractions(Long destinationId);
+    List<AttractionResponse> getAllAttractions(
+            Long stateId,
+            Long destinationId,
+            Long experienceId,
+            Long tagId,
+            Boolean featured
+    );
 
     List<AttractionResponse> getFeaturedAttractions();
 
