@@ -10,11 +10,19 @@ public interface DestinationService {
 
     DestinationResponse create(DestinationRequest request);
 
-    DestinationResponse update(Long id, DestinationRequest request);
+    DestinationResponse update(
+            Long id,
+            DestinationRequest request
+    );
 
     DestinationResponse getById(Long id);
 
-    List<DestinationResponse> getAll();
+    List<DestinationResponse> getAll(
+            Long stateId,
+            DestinationType type,
+            Boolean featured,
+            Boolean popular
+    );
 
     List<DestinationResponse> getByState(Long stateId);
 

@@ -6,6 +6,7 @@ import com.tourism.backend.destination.dto.DestinationResponse;
 import com.tourism.backend.destination.entity.DestinationType;
 import com.tourism.backend.destination.service.DestinationService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -50,38 +51,66 @@ public class DestinationController {
     }
 
     @GetMapping
-    @Operation(summary = "Get destinations")
+    @Operation(
+            summary = "Get destinations",
+            description = """
+                    Returns destinations with optional filters.
+
+                    Filters can be combined.
+
+                    Examples:
+
+                    /api/destinations?stateId=1
+
+                    /api/destinations?type=HILL_STATION
+
+                    /api/destinations?featured=true
+
+                    /api/destinations?popular=true
+
+                    /api/destinations?stateId=1&type=HILL_STATION
+
+                    /api/destinations?stateId=1&featured=true
+
+                    /api/destinations?stateId=1&type=HILL_STATION&featured=true
+                    """
+    )
     public List<DestinationResponse> getAll(
 
+            @Parameter(
+                    description = "Filter by state ID",
+                    example = "1"
+            )
             @RequestParam(required = false)
             Long stateId,
 
+            @Parameter(
+                    description = "Filter by destination type",
+                    example = "HILL_STATION"
+            )
             @RequestParam(required = false)
             DestinationType type,
 
+            @Parameter(
+                    description = "Filter by featured status",
+                    example = "true"
+            )
             @RequestParam(required = false)
             Boolean featured,
 
+            @Parameter(
+                    description = "Filter by popular status",
+                    example = "true"
+            )
             @RequestParam(required = false)
             Boolean popular) {
 
-        if (featured != null && featured) {
-            return service.getFeatured();
-        }
-
-        if (popular != null && popular) {
-            return service.getPopular();
-        }
-
-        if (stateId != null) {
-            return service.getByState(stateId);
-        }
-
-        if (type != null) {
-            return service.getByType(type);
-        }
-
-        return service.getAll();
+        return service.getAll(
+                stateId,
+                type,
+                featured,
+                popular
+        );
     }
 
     @DeleteMapping("/{id}")
