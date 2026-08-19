@@ -9,6 +9,7 @@ const API = {
   GUIDES: "/guides",
   TRANSPORT: "/transport",
   ITINERARIES: "/itineraries",
+  TAGS: "/tags",
 };
 
 export default API;
