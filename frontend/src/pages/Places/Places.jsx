@@ -11,6 +11,7 @@ import placeService from "../../services/placeService";
 import stateService from "../../services/stateService";
 import destinationService from "../../services/destinationService";
 import experienceService from "../../services/experienceService";
+import tagService from "../../services/tagService";
 
 export default function Places() {
   const [places, setPlaces] = useState([]);
@@ -18,11 +19,13 @@ export default function Places() {
   const [states, setStates] = useState([]);
   const [destinations, setDestinations] = useState([]);
   const [experiences, setExperiences] = useState([]);
+  const [tags, setTags] = useState([]);
 
   const [filters, setFilters] = useState({
     stateId: "",
     destinationId: "",
     experienceId: "",
+    tagId: "",
     featured: false,
   });
 
@@ -41,15 +44,18 @@ export default function Places() {
         stateData,
         destinationData,
         experienceData,
+        tagData,
       ] = await Promise.all([
         stateService.getAll(),
         destinationService.getAll(),
         experienceService.getAll(),
+        tagService.getAll(),
       ]);
 
       setStates(stateData);
       setDestinations(destinationData);
       setExperiences(experienceData);
+      setTags(tagData);
     } catch (err) {
       console.error(err);
       setError("Unable to load filter options.");
@@ -73,6 +79,10 @@ export default function Places() {
 
       if (currentFilters.experienceId) {
         params.experienceId = currentFilters.experienceId;
+      }
+
+      if (currentFilters.tagId) {
+        params.tagId = currentFilters.tagId;
       }
 
       if (currentFilters.featured) {
@@ -101,7 +111,6 @@ export default function Places() {
       [name]: type === "checkbox" ? checked : value,
     };
 
-    // If state changes, clear the selected destination.
     if (name === "stateId") {
       newFilters.destinationId = "";
     }
@@ -116,6 +125,7 @@ export default function Places() {
       stateId: "",
       destinationId: "",
       experienceId: "",
+      tagId: "",
       featured: false,
     };
 
@@ -174,7 +184,7 @@ export default function Places() {
           </button>
         </div>
 
-        <div className="mt-6 grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        <div className="mt-6 grid gap-4 md:grid-cols-2 lg:grid-cols-5">
           {/* State */}
           <div>
             <label
@@ -270,6 +280,37 @@ export default function Places() {
             </select>
           </div>
 
+          {/* Tag */}
+          <div>
+            <label
+              htmlFor="tagId"
+              className="mb-2 block text-sm font-medium text-slate-700"
+            >
+              Tag
+            </label>
+
+            <select
+              id="tagId"
+              name="tagId"
+              value={filters.tagId}
+              onChange={handleFilterChange}
+              className="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm outline-none focus:border-[var(--color-primary)]"
+            >
+              <option value="">
+                All Tags
+              </option>
+
+              {tags.map((tag) => (
+                <option
+                  key={tag.id}
+                  value={tag.id}
+                >
+                  {tag.name}
+                </option>
+              ))}
+            </select>
+          </div>
+
           {/* Featured */}
           <div className="flex items-end">
             <label className="flex w-full cursor-pointer items-center gap-3 rounded-xl border border-slate-300 px-4 py-3">
@@ -289,7 +330,7 @@ export default function Places() {
         </div>
       </div>
 
-      {/* Loading filtered results */}
+      {/* Results */}
       {filterLoading ? (
         <LoadingSpinner message="Finding places..." />
       ) : places.length === 0 ? (
