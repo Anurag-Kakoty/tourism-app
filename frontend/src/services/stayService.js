@@ -2,8 +2,11 @@ import api from "./api";
 import API from "../constants/api";
 
 const stayService = {
-  async getAll() {
-    const response = await api.get(API.ACCOMMODATIONS);
+  async getAll(filters = {}) {
+    const response = await api.get(API.ACCOMMODATIONS, {
+      params: filters,
+    });
+
     return response.data;
   },
 
@@ -54,7 +57,10 @@ const stayService = {
     return response.data;
   },
 
-  async getByDestinationAndType(destinationId, type) {
+  async getByDestinationAndType(
+    destinationId,
+    type
+  ) {
     const response = await api.get(
       API.ACCOMMODATIONS,
       {
