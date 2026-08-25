@@ -40,7 +40,10 @@ public class TransportController {
             @PathVariable Long id,
             @Valid @RequestBody TransportRequest request) {
 
-        return transportService.updateTransport(id, request);
+        return transportService.updateTransport(
+                id,
+                request
+        );
     }
 
     @GetMapping("/{id}")
@@ -55,8 +58,26 @@ public class TransportController {
     @Operation(
             summary = "Get transport options",
             description = """
-                    Returns all transport options or filters by a single optional parameter.
-                    If multiple filters are supplied, only the first applicable filter is used.
+                    Returns transport options using optional combined filters.
+
+                    Available filters:
+                    - destinationId
+                    - type
+                    - available
+
+                    Filters can be combined.
+
+                    Examples:
+
+                    /api/transport?destinationId=1
+
+                    /api/transport?type=BUS
+
+                    /api/transport?available=true
+
+                    /api/transport?destinationId=1&type=BUS
+
+                    /api/transport?destinationId=1&type=BUS&available=true
                     """
     )
     public List<TransportResponse> getTransport(
@@ -70,19 +91,11 @@ public class TransportController {
             @RequestParam(required = false)
             Boolean available) {
 
-        if (destinationId != null) {
-            return transportService.getTransportByDestination(destinationId);
-        }
-
-        if (type != null) {
-            return transportService.getTransportByType(type);
-        }
-
-        if (available != null) {
-            return transportService.getTransportByAvailability(available);
-        }
-
-        return transportService.getAllTransportOptions();
+        return transportService.getAllTransportOptions(
+                destinationId,
+                type,
+                available
+        );
     }
 
     @DeleteMapping("/{id}")

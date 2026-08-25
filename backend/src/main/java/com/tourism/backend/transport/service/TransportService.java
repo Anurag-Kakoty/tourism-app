@@ -8,19 +8,38 @@ import java.util.List;
 
 public interface TransportService {
 
-    TransportResponse createTransport(TransportRequest request);
+    TransportResponse createTransport(
+            TransportRequest request
+    );
 
-    TransportResponse updateTransport(Long id, TransportRequest request);
+    TransportResponse updateTransport(
+            Long id,
+            TransportRequest request
+    );
 
-    TransportResponse getTransportById(Long id);
+    TransportResponse getTransportById(
+            Long id
+    );
 
-    List<TransportResponse> getAllTransportOptions();
+    List<TransportResponse> getAllTransportOptions(
+            Long destinationId,
+            TransportType type,
+            Boolean available
+    );
 
-    List<TransportResponse> getTransportByDestination(Long destinationId);
+    List<TransportResponse> getTransportByDestination(
+            Long destinationId
+    );
 
-    List<TransportResponse> getTransportByType(TransportType type);
+    List<TransportResponse> getTransportByType(
+            TransportType type
+    );
 
-    List<TransportResponse> getTransportByAvailability(Boolean available);
+    List<TransportResponse> getTransportByAvailability(
+            Boolean available
+    );
 
-    void deleteTransport(Long id);
+    void deleteTransport(
+            Long id
+    );
 }

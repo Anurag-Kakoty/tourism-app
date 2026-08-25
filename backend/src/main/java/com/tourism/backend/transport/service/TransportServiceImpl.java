@@ -10,8 +10,11 @@ import com.tourism.backend.transport.entity.Transport;
 import com.tourism.backend.transport.entity.TransportType;
 import com.tourism.backend.transport.mapper.TransportMapper;
 import com.tourism.backend.transport.repository.TransportRepository;
+import com.tourism.backend.transport.specification.TransportSpecification;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -28,7 +31,8 @@ public class TransportServiceImpl implements TransportService {
     private final TransportMapper transportMapper;
 
     @Override
-    public TransportResponse createTransport(TransportRequest request) {
+    public TransportResponse createTransport(
+            TransportRequest request) {
 
         if (transportRepository
                 .existsByProviderNameIgnoreCaseAndDestination_Id(
@@ -36,20 +40,32 @@ public class TransportServiceImpl implements TransportService {
                         request.getDestinationId())) {
 
             throw new DuplicateResourceException(
-                    "Transport provider already exists for this destination.");
+                    "Transport provider already exists for this destination."
+            );
         }
 
-        Destination destination = destinationRepository.findById(request.getDestinationId())
-                .orElseThrow(() ->
-                        new ResourceNotFoundException("Destination not found."));
+        Destination destination =
+                destinationRepository.findById(
+                        request.getDestinationId()
+                ).orElseThrow(() ->
+                        new ResourceNotFoundException(
+                                "Destination not found."
+                        )
+                );
 
         Transport transport =
-                transportMapper.toEntity(request, destination);
+                transportMapper.toEntity(
+                        request,
+                        destination
+                );
 
         Transport savedTransport =
                 transportRepository.save(transport);
 
-        log.info("Transport created with ID {}", savedTransport.getId());
+        log.info(
+                "Transport created with ID {}",
+                savedTransport.getId()
+        );
 
         return transportMapper.toResponse(savedTransport);
     }
@@ -59,9 +75,13 @@ public class TransportServiceImpl implements TransportService {
             Long id,
             TransportRequest request) {
 
-        Transport transport = transportRepository.findById(id)
-                .orElseThrow(() ->
-                        new ResourceNotFoundException("Transport not found."));
+        Transport transport =
+                transportRepository.findById(id)
+                        .orElseThrow(() ->
+                                new ResourceNotFoundException(
+                                        "Transport not found."
+                                )
+                        );
 
         if (transportRepository
                 .existsByProviderNameIgnoreCaseAndDestination_IdAndIdNot(
@@ -70,12 +90,18 @@ public class TransportServiceImpl implements TransportService {
                         id)) {
 
             throw new DuplicateResourceException(
-                    "Transport provider already exists for this destination.");
+                    "Transport provider already exists for this destination."
+            );
         }
 
-        Destination destination = destinationRepository.findById(request.getDestinationId())
-                .orElseThrow(() ->
-                        new ResourceNotFoundException("Destination not found."));
+        Destination destination =
+                destinationRepository.findById(
+                        request.getDestinationId()
+                ).orElseThrow(() ->
+                        new ResourceNotFoundException(
+                                "Destination not found."
+                        )
+                );
 
         transport.setType(request.getType());
         transport.setProviderName(request.getProviderName());
@@ -92,29 +118,72 @@ public class TransportServiceImpl implements TransportService {
         Transport updatedTransport =
                 transportRepository.save(transport);
 
-        log.info("Transport updated with ID {}", id);
+        log.info(
+                "Transport updated with ID {}",
+                id
+        );
 
         return transportMapper.toResponse(updatedTransport);
     }
 
     @Override
     @Transactional(readOnly = true)
-    public TransportResponse getTransportById(Long id) {
+    public TransportResponse getTransportById(
+            Long id) {
 
-        Transport transport = transportRepository
-                .findWithDestinationById(id)
-                .orElseThrow(() ->
-                        new ResourceNotFoundException("Transport not found."));
+        Transport transport =
+                transportRepository
+                        .findWithDestinationById(id)
+                        .orElseThrow(() ->
+                                new ResourceNotFoundException(
+                                        "Transport not found."
+                                )
+                        );
 
         return transportMapper.toResponse(transport);
     }
 
     @Override
     @Transactional(readOnly = true)
-    public List<TransportResponse> getAllTransportOptions() {
+    public List<TransportResponse> getAllTransportOptions(
+            Long destinationId,
+            TransportType type,
+            Boolean available) {
+
+        log.info(
+                "Fetching transport with filters: " +
+                        "destinationId={}, type={}, available={}",
+                destinationId,
+                type,
+                available
+        );
+
+        Specification<Transport> specification =
+                Specification
+                        .where(
+                                TransportSpecification.hasDestinationId(
+                                        destinationId
+                                )
+                        )
+                        .and(
+                                TransportSpecification.hasType(
+                                        type
+                                )
+                        )
+                        .and(
+                                TransportSpecification.isAvailable(
+                                        available
+                                )
+                        );
 
         return transportRepository
-                .findAllByOrderByTypeAscProviderNameAsc()
+                .findAll(
+                        specification,
+                        Sort.by(
+                                Sort.Order.asc("type"),
+                                Sort.Order.asc("providerName")
+                        )
+                )
                 .stream()
                 .map(transportMapper::toResponse)
                 .toList();
@@ -122,46 +191,56 @@ public class TransportServiceImpl implements TransportService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<TransportResponse> getTransportByDestination(Long destinationId) {
+    public List<TransportResponse> getTransportByDestination(
+            Long destinationId) {
 
-        return transportRepository
-                .findAllByDestination_IdOrderByTypeAscProviderNameAsc(destinationId)
-                .stream()
-                .map(transportMapper::toResponse)
-                .toList();
+        return getAllTransportOptions(
+                destinationId,
+                null,
+                null
+        );
     }
 
     @Override
     @Transactional(readOnly = true)
-    public List<TransportResponse> getTransportByType(TransportType type) {
+    public List<TransportResponse> getTransportByType(
+            TransportType type) {
 
-        return transportRepository
-                .findAllByTypeOrderByProviderNameAsc(type)
-                .stream()
-                .map(transportMapper::toResponse)
-                .toList();
+        return getAllTransportOptions(
+                null,
+                type,
+                null
+        );
     }
 
     @Override
     @Transactional(readOnly = true)
-    public List<TransportResponse> getTransportByAvailability(Boolean available) {
+    public List<TransportResponse> getTransportByAvailability(
+            Boolean available) {
 
-        return transportRepository
-                .findAllByAvailableOrderByTypeAscProviderNameAsc(available)
-                .stream()
-                .map(transportMapper::toResponse)
-                .toList();
+        return getAllTransportOptions(
+                null,
+                null,
+                available
+        );
     }
 
     @Override
     public void deleteTransport(Long id) {
 
-        Transport transport = transportRepository.findById(id)
-                .orElseThrow(() ->
-                        new ResourceNotFoundException("Transport not found."));
+        Transport transport =
+                transportRepository.findById(id)
+                        .orElseThrow(() ->
+                                new ResourceNotFoundException(
+                                        "Transport not found."
+                                )
+                        );
 
         transportRepository.delete(transport);
 
-        log.info("Transport deleted with ID {}", id);
+        log.info(
+                "Transport deleted with ID {}",
+                id
+        );
     }
 }
