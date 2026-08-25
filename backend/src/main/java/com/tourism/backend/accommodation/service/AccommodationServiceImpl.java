@@ -6,12 +6,15 @@ import com.tourism.backend.accommodation.entity.Accommodation;
 import com.tourism.backend.accommodation.entity.AccommodationType;
 import com.tourism.backend.accommodation.mapper.AccommodationMapper;
 import com.tourism.backend.accommodation.repository.AccommodationRepository;
+import com.tourism.backend.accommodation.specification.AccommodationSpecification;
 import com.tourism.backend.destination.entity.Destination;
 import com.tourism.backend.destination.repository.DestinationRepository;
 import com.tourism.backend.exception.DuplicateResourceException;
 import com.tourism.backend.exception.ResourceNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -21,32 +24,45 @@ import java.util.List;
 @RequiredArgsConstructor
 @Slf4j
 @Transactional
-public class AccommodationServiceImpl implements AccommodationService {
+public class AccommodationServiceImpl
+        implements AccommodationService {
 
     private final AccommodationRepository accommodationRepository;
     private final DestinationRepository destinationRepository;
     private final AccommodationMapper mapper;
 
     @Override
-    public AccommodationResponse create(AccommodationRequest request) {
+    public AccommodationResponse create(
+            AccommodationRequest request) {
 
-        log.info("Creating accommodation '{}'", request.getName());
+        log.info(
+                "Creating accommodation '{}'",
+                request.getName()
+        );
 
-        if (accommodationRepository.existsByNameIgnoreCaseAndDestination_Id(
-                request.getName(),
-                request.getDestinationId())) {
+        if (accommodationRepository
+                .existsByNameIgnoreCaseAndDestination_Id(
+                        request.getName(),
+                        request.getDestinationId())) {
 
             throw new DuplicateResourceException(
-                    "Accommodation already exists in this destination.");
+                    "Accommodation already exists in this destination."
+            );
         }
 
-        Destination destination = getDestination(request.getDestinationId());
+        Destination destination =
+                getDestination(request.getDestinationId());
 
-        Accommodation accommodation = mapper.toEntity(request, destination);
+        Accommodation accommodation =
+                mapper.toEntity(request, destination);
 
-        Accommodation saved = accommodationRepository.save(accommodation);
+        Accommodation saved =
+                accommodationRepository.save(accommodation);
 
-        log.info("Accommodation created with id {}", saved.getId());
+        log.info(
+                "Accommodation created with id {}",
+                saved.getId()
+        );
 
         return mapper.toResponse(saved);
     }
@@ -56,9 +72,13 @@ public class AccommodationServiceImpl implements AccommodationService {
             Long id,
             AccommodationRequest request) {
 
-        log.info("Updating accommodation {}", id);
+        log.info(
+                "Updating accommodation {}",
+                id
+        );
 
-        Accommodation accommodation = getAccommodation(id);
+        Accommodation accommodation =
+                getAccommodation(id);
 
         if (accommodationRepository
                 .existsByNameIgnoreCaseAndDestination_IdAndIdNot(
@@ -67,10 +87,12 @@ public class AccommodationServiceImpl implements AccommodationService {
                         id)) {
 
             throw new DuplicateResourceException(
-                    "Accommodation already exists in this destination.");
+                    "Accommodation already exists in this destination."
+            );
         }
 
-        Destination destination = getDestination(request.getDestinationId());
+        Destination destination =
+                getDestination(request.getDestinationId());
 
         mapper.updateEntity(
                 accommodation,
@@ -78,9 +100,13 @@ public class AccommodationServiceImpl implements AccommodationService {
                 destination
         );
 
-        Accommodation updated = accommodationRepository.save(accommodation);
+        Accommodation updated =
+                accommodationRepository.save(accommodation);
 
-        log.info("Accommodation {} updated", id);
+        log.info(
+                "Accommodation {} updated",
+                id
+        );
 
         return mapper.toResponse(updated);
     }
@@ -89,28 +115,66 @@ public class AccommodationServiceImpl implements AccommodationService {
     @Transactional(readOnly = true)
     public AccommodationResponse getById(Long id) {
 
-        return mapper.toResponse(getAccommodation(id));
+        return mapper.toResponse(
+                getAccommodation(id)
+        );
     }
 
     @Override
     @Transactional(readOnly = true)
-    public List<AccommodationResponse> getAll() {
+    public List<AccommodationResponse> getAll(
+            Long destinationId,
+            AccommodationType type,
+            Boolean available) {
 
-        return accommodationRepository.findAllByOrderByNameAsc()
-                .stream()
-                .map(mapper::toResponse)
-                .toList();
-    }
+        log.info(
+                "Fetching accommodations with filters: " +
+                        "destinationId={}, type={}, available={}",
+                destinationId,
+                type,
+                available
+        );
 
-    @Override
-    @Transactional(readOnly = true)
-    public List<AccommodationResponse> getByDestination(Long destinationId) {
+        Specification<Accommodation> specification =
+                Specification
+                        .where(
+                                AccommodationSpecification.hasDestinationId(
+                                        destinationId
+                                )
+                        )
+                        .and(
+                                AccommodationSpecification.hasType(
+                                        type
+                                )
+                        )
+                        .and(
+                                AccommodationSpecification.isAvailable(
+                                        available
+                                )
+                        );
 
         return accommodationRepository
-                .findAllByDestination_IdOrderByNameAsc(destinationId)
+                .findAll(
+                        specification,
+                        Sort.by(
+                                Sort.Order.asc("name")
+                        )
+                )
                 .stream()
                 .map(mapper::toResponse)
                 .toList();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<AccommodationResponse> getByDestination(
+            Long destinationId) {
+
+        return getAll(
+                destinationId,
+                null,
+                null
+        );
     }
 
     @Override
@@ -118,11 +182,11 @@ public class AccommodationServiceImpl implements AccommodationService {
     public List<AccommodationResponse> getByType(
             AccommodationType type) {
 
-        return accommodationRepository
-                .findAllByTypeOrderByNameAsc(type)
-                .stream()
-                .map(mapper::toResponse)
-                .toList();
+        return getAll(
+                null,
+                type,
+                null
+        );
     }
 
     @Override
@@ -130,11 +194,11 @@ public class AccommodationServiceImpl implements AccommodationService {
     public List<AccommodationResponse> getByAvailable(
             Boolean available) {
 
-        return accommodationRepository
-                .findAllByAvailableOrderByNameAsc(available)
-                .stream()
-                .map(mapper::toResponse)
-                .toList();
+        return getAll(
+                null,
+                null,
+                available
+        );
     }
 
     @Override
@@ -143,39 +207,46 @@ public class AccommodationServiceImpl implements AccommodationService {
             Long destinationId,
             AccommodationType type) {
 
-        return accommodationRepository
-                .findAllByDestination_IdAndTypeOrderByNameAsc(
-                        destinationId,
-                        type
-                )
-                .stream()
-                .map(mapper::toResponse)
-                .toList();
+        return getAll(
+                destinationId,
+                type,
+                null
+        );
     }
 
     @Override
     public void delete(Long id) {
 
-        Accommodation accommodation = getAccommodation(id);
+        Accommodation accommodation =
+                getAccommodation(id);
 
         accommodationRepository.delete(accommodation);
 
-        log.info("Accommodation {} deleted", id);
+        log.info(
+                "Accommodation {} deleted",
+                id
+        );
     }
 
     private Accommodation getAccommodation(Long id) {
 
-        return accommodationRepository.findWithDestinationById(id)
+        return accommodationRepository
+                .findWithDestinationById(id)
                 .orElseThrow(() ->
                         new ResourceNotFoundException(
-                                "Accommodation not found with id: " + id));
+                                "Accommodation not found with id: " + id
+                        )
+                );
     }
 
     private Destination getDestination(Long id) {
 
-        return destinationRepository.findById(id)
+        return destinationRepository
+                .findById(id)
                 .orElseThrow(() ->
                         new ResourceNotFoundException(
-                                "Destination not found with id: " + id));
+                                "Destination not found with id: " + id
+                        )
+                );
     }
 }
