@@ -2,8 +2,11 @@ import api from "./api";
 import API from "../constants/api";
 
 const transportService = {
-  async getAll() {
-    const response = await api.get(API.TRANSPORT);
+  async getAll(filters = {}) {
+    const response = await api.get(API.TRANSPORT, {
+      params: filters,
+    });
+
     return response.data;
   },
 
