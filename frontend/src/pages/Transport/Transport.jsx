@@ -130,13 +130,19 @@ export default function Transport() {
             <select
               id="type"
               value={type}
-              onChange={(e) =>
-                setType(e.target.value)
-              }
+              onChange={(e) => setType(e.target.value)}
               className="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm outline-none focus:border-[var(--color-primary)]"
             >
               <option value="">
                 All types
+              </option>
+
+              <option value="AIR">
+                Air
+              </option>
+
+              <option value="TRAIN">
+                Train
               </option>
 
               <option value="BUS">
@@ -147,16 +153,12 @@ export default function Transport() {
                 Cab
               </option>
 
-              <option value="TRAIN">
-                Train
-              </option>
-
-              <option value="FLIGHT">
-                Flight
-              </option>
-
               <option value="SELF_DRIVE">
                 Self Drive
+              </option>
+
+              <option value="FERRY">
+                Ferry
               </option>
             </select>
           </div>
