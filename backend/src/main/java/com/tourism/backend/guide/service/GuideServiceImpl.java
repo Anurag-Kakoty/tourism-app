@@ -10,8 +10,11 @@ import com.tourism.backend.guide.entity.Guide;
 import com.tourism.backend.guide.entity.Language;
 import com.tourism.backend.guide.mapper.GuideMapper;
 import com.tourism.backend.guide.repository.GuideRepository;
+import com.tourism.backend.guide.specification.GuideSpecification;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -30,114 +33,198 @@ public class GuideServiceImpl implements GuideService {
     @Override
     public GuideResponse createGuide(GuideRequest request) {
 
-        if (guideRepository.existsByPhone(request.getPhone()))
-            throw new DuplicateResourceException("Phone number already exists.");
+        if (guideRepository.existsByPhone(request.getPhone())) {
+            throw new DuplicateResourceException(
+                    "Phone number already exists."
+            );
+        }
 
-        if (guideRepository.existsByEmailIgnoreCase(request.getEmail()))
-            throw new DuplicateResourceException("Email already exists.");
+        if (guideRepository.existsByEmailIgnoreCase(request.getEmail())) {
+            throw new DuplicateResourceException(
+                    "Email already exists."
+            );
+        }
 
-        if (guideRepository.existsByLicenseNumber(request.getLicenseNumber()))
-            throw new DuplicateResourceException("License number already exists.");
+        if (guideRepository.existsByLicenseNumber(
+                request.getLicenseNumber())) {
 
-        Destination destination = destinationRepository.findById(request.getDestinationId())
-                .orElseThrow(() -> new ResourceNotFoundException("Destination not found."));
+            throw new DuplicateResourceException(
+                    "License number already exists."
+            );
+        }
 
-        Guide guide = guideMapper.toEntity(request, destination);
+        Destination destination =
+                destinationRepository.findById(
+                        request.getDestinationId()
+                ).orElseThrow(() ->
+                        new ResourceNotFoundException(
+                                "Destination not found."
+                        )
+                );
 
-        Guide savedGuide = guideRepository.save(guide);
+        Guide guide =
+                guideMapper.toEntity(request, destination);
 
-        log.info("Guide created with ID {}", savedGuide.getId());
+        Guide savedGuide =
+                guideRepository.save(guide);
+
+        log.info(
+                "Guide created with ID {}",
+                savedGuide.getId()
+        );
 
         return guideMapper.toResponse(savedGuide);
     }
 
     @Override
-    public GuideResponse updateGuide(Long id, GuideRequest request) {
+    public GuideResponse updateGuide(
+            Long id,
+            GuideRequest request) {
 
-        Guide guide = guideRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Guide not found."));
+        Guide guide =
+                guideRepository.findById(id)
+                        .orElseThrow(() ->
+                                new ResourceNotFoundException(
+                                        "Guide not found."
+                                )
+                        );
 
-        if (guideRepository.existsByPhoneAndIdNot(request.getPhone(), id))
-            throw new DuplicateResourceException("Phone number already exists.");
+        if (guideRepository.existsByPhoneAndIdNot(
+                request.getPhone(),
+                id)) {
 
-        if (guideRepository.existsByEmailIgnoreCaseAndIdNot(request.getEmail(), id))
-            throw new DuplicateResourceException("Email already exists.");
+            throw new DuplicateResourceException(
+                    "Phone number already exists."
+            );
+        }
 
-        if (guideRepository.existsByLicenseNumberAndIdNot(request.getLicenseNumber(), id))
-            throw new DuplicateResourceException("License number already exists.");
+        if (guideRepository.existsByEmailIgnoreCaseAndIdNot(
+                request.getEmail(),
+                id)) {
 
-        Destination destination = destinationRepository.findById(request.getDestinationId())
-                .orElseThrow(() -> new ResourceNotFoundException("Destination not found."));
+            throw new DuplicateResourceException(
+                    "Email already exists."
+            );
+        }
+
+        if (guideRepository.existsByLicenseNumberAndIdNot(
+                request.getLicenseNumber(),
+                id)) {
+
+            throw new DuplicateResourceException(
+                    "License number already exists."
+            );
+        }
+
+        Destination destination =
+                destinationRepository.findById(
+                        request.getDestinationId()
+                ).orElseThrow(() ->
+                        new ResourceNotFoundException(
+                                "Destination not found."
+                        )
+                );
 
         guide.setName(request.getName());
         guide.setBio(request.getBio());
         guide.setPhone(request.getPhone());
         guide.setEmail(request.getEmail());
         guide.setLanguages(request.getLanguages());
-        guide.setYearsOfExperience(request.getYearsOfExperience());
+        guide.setYearsOfExperience(
+                request.getYearsOfExperience()
+        );
         guide.setPricePerDay(request.getPricePerDay());
-        guide.setRating(request.getRating() != null ? request.getRating() : 0.0);
+        guide.setRating(
+                request.getRating() != null
+                        ? request.getRating()
+                        : 0.0
+        );
         guide.setAvailable(request.getAvailable());
         guide.setLicenseNumber(request.getLicenseNumber());
-        guide.setProvidesTransport(request.getProvidesTransport());
+        guide.setProvidesTransport(
+                request.getProvidesTransport()
+        );
         guide.setImageUrl(request.getImageUrl());
         guide.setDestination(destination);
 
-        log.info("Guide updated with ID {}", id);
+        Guide updatedGuide =
+                guideRepository.save(guide);
 
-        return guideMapper.toResponse(guideRepository.save(guide));
+        log.info(
+                "Guide updated with ID {}",
+                id
+        );
+
+        return guideMapper.toResponse(updatedGuide);
     }
 
     @Override
     @Transactional(readOnly = true)
     public GuideResponse getGuideById(Long id) {
 
-        Guide guide = guideRepository.findWithDestinationById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Guide not found."));
+        Guide guide =
+                guideRepository.findWithDestinationById(id)
+                        .orElseThrow(() ->
+                                new ResourceNotFoundException(
+                                        "Guide not found."
+                                )
+                        );
 
         return guideMapper.toResponse(guide);
     }
 
     @Override
     @Transactional(readOnly = true)
-    public List<GuideResponse> getAllGuides() {
-        return guideRepository.findAllByOrderByRatingDescNameAsc()
-                .stream()
-                .map(guideMapper::toResponse)
-                .toList();
-    }
+    public List<GuideResponse> getGuides(
+            Long destinationId,
+            Boolean available,
+            Boolean providesTransport,
+            Language language) {
 
-    @Override
-    @Transactional(readOnly = true)
-    public List<GuideResponse> getGuidesByDestination(Long destinationId) {
-        return guideRepository.findAllByDestination_IdOrderByRatingDescNameAsc(destinationId)
-                .stream()
-                .map(guideMapper::toResponse)
-                .toList();
-    }
+        log.info(
+                "Fetching guides with filters: " +
+                        "destinationId={}, available={}, " +
+                        "providesTransport={}, language={}",
+                destinationId,
+                available,
+                providesTransport,
+                language
+        );
 
-    @Override
-    @Transactional(readOnly = true)
-    public List<GuideResponse> getGuidesByAvailability(Boolean available) {
-        return guideRepository.findAllByAvailableOrderByRatingDescNameAsc(available)
-                .stream()
-                .map(guideMapper::toResponse)
-                .toList();
-    }
+        Specification<Guide> specification =
+                Specification
+                        .where(
+                                GuideSpecification.fetchRequiredRelations()
+                        )
+                        .and(
+                                GuideSpecification.hasDestinationId(
+                                        destinationId
+                                )
+                        )
+                        .and(
+                                GuideSpecification.isAvailable(
+                                        available
+                                )
+                        )
+                        .and(
+                                GuideSpecification.providesTransport(
+                                        providesTransport
+                                )
+                        )
+                        .and(
+                                GuideSpecification.hasLanguage(
+                                        language
+                                )
+                        );
 
-    @Override
-    @Transactional(readOnly = true)
-    public List<GuideResponse> getGuidesByProvidesTransport(Boolean providesTransport) {
-        return guideRepository.findAllByProvidesTransportOrderByRatingDescNameAsc(providesTransport)
-                .stream()
-                .map(guideMapper::toResponse)
-                .toList();
-    }
-
-    @Override
-    @Transactional(readOnly = true)
-    public List<GuideResponse> getGuidesByLanguage(Language language) {
-        return guideRepository.findAllByLanguage(language)
+        return guideRepository
+                .findAll(
+                        specification,
+                        Sort.by(
+                                Sort.Order.desc("rating"),
+                                Sort.Order.asc("name")
+                        )
+                )
                 .stream()
                 .map(guideMapper::toResponse)
                 .toList();
@@ -146,11 +233,19 @@ public class GuideServiceImpl implements GuideService {
     @Override
     public void deleteGuide(Long id) {
 
-        Guide guide = guideRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Guide not found."));
+        Guide guide =
+                guideRepository.findById(id)
+                        .orElseThrow(() ->
+                                new ResourceNotFoundException(
+                                        "Guide not found."
+                                )
+                        );
 
         guideRepository.delete(guide);
 
-        log.info("Guide deleted with ID {}", id);
+        log.info(
+                "Guide deleted with ID {}",
+                id
+        );
     }
 }

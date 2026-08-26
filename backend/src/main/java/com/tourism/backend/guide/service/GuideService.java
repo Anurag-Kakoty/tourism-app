@@ -10,19 +10,19 @@ public interface GuideService {
 
     GuideResponse createGuide(GuideRequest request);
 
-    GuideResponse updateGuide(Long id, GuideRequest request);
+    GuideResponse updateGuide(
+            Long id,
+            GuideRequest request
+    );
 
     GuideResponse getGuideById(Long id);
 
-    List<GuideResponse> getAllGuides();
-
-    List<GuideResponse> getGuidesByDestination(Long destinationId);
-
-    List<GuideResponse> getGuidesByAvailability(Boolean available);
-
-    List<GuideResponse> getGuidesByProvidesTransport(Boolean providesTransport);
-
-    List<GuideResponse> getGuidesByLanguage(Language language);
+    List<GuideResponse> getGuides(
+            Long destinationId,
+            Boolean available,
+            Boolean providesTransport,
+            Language language
+    );
 
     void deleteGuide(Long id);
 }

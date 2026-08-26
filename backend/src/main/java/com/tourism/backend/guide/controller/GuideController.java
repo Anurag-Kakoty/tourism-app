@@ -17,7 +17,10 @@ import java.util.List;
 @RestController
 @RequestMapping(ApiPaths.GUIDES)
 @RequiredArgsConstructor
-@Tag(name = "Guide", description = "Guide Management APIs")
+@Tag(
+        name = "Guide",
+        description = "Guide Management APIs"
+)
 public class GuideController {
 
     private final GuideService guideService;
@@ -25,7 +28,9 @@ public class GuideController {
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     @Operation(summary = "Create a new guide")
-    public GuideResponse createGuide(@Valid @RequestBody GuideRequest request) {
+    public GuideResponse createGuide(
+            @Valid @RequestBody GuideRequest request) {
+
         return guideService.createGuide(request);
     }
 
@@ -40,41 +45,67 @@ public class GuideController {
 
     @GetMapping("/{id}")
     @Operation(summary = "Get guide by ID")
-    public GuideResponse getGuideById(@PathVariable Long id) {
+    public GuideResponse getGuideById(
+            @PathVariable Long id) {
+
         return guideService.getGuideById(id);
     }
 
     @GetMapping
-    @Operation(summary = "Get guides with optional filters")
+    @Operation(
+            summary = "Get guides with optional filters",
+            description = """
+                    Returns guides using optional combinable filters.
+
+                    Available filters:
+                    - destinationId
+                    - available
+                    - providesTransport
+                    - language
+
+                    Examples:
+
+                    /api/guides?destinationId=1
+
+                    /api/guides?available=true
+
+                    /api/guides?providesTransport=true
+
+                    /api/guides?language=KHASI
+
+                    Multiple filters can be combined:
+
+                    /api/guides?destinationId=1&available=true&providesTransport=true&language=KHASI
+                    """
+    )
     public List<GuideResponse> getGuides(
-            @RequestParam(required = false) Long destinationId,
-            @RequestParam(required = false) Boolean available,
-            @RequestParam(required = false) Boolean providesTransport,
-            @RequestParam(required = false) Language language) {
 
-        if (destinationId != null) {
-            return guideService.getGuidesByDestination(destinationId);
-        }
+            @RequestParam(required = false)
+            Long destinationId,
 
-        if (available != null) {
-            return guideService.getGuidesByAvailability(available);
-        }
+            @RequestParam(required = false)
+            Boolean available,
 
-        if (providesTransport != null) {
-            return guideService.getGuidesByProvidesTransport(providesTransport);
-        }
+            @RequestParam(required = false)
+            Boolean providesTransport,
 
-        if (language != null) {
-            return guideService.getGuidesByLanguage(language);
-        }
+            @RequestParam(required = false)
+            Language language) {
 
-        return guideService.getAllGuides();
+        return guideService.getGuides(
+                destinationId,
+                available,
+                providesTransport,
+                language
+        );
     }
 
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @Operation(summary = "Delete guide")
-    public void deleteGuide(@PathVariable Long id) {
+    public void deleteGuide(
+            @PathVariable Long id) {
+
         guideService.deleteGuide(id);
     }
 }
