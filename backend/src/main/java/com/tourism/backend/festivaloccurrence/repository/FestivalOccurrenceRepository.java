@@ -3,54 +3,24 @@ package com.tourism.backend.festivaloccurrence.repository;
 import com.tourism.backend.festivaloccurrence.entity.FestivalOccurrence;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
+import org.springframework.data.jpa.domain.Specification;
+import org.springframework.data.domain.Sort;
 
-import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
 public interface FestivalOccurrenceRepository
-        extends JpaRepository<FestivalOccurrence, Long> {
+        extends JpaRepository<FestivalOccurrence, Long>,
+        JpaSpecificationExecutor<FestivalOccurrence> {
 
     @EntityGraph(attributePaths = {
             "festival",
             "state"
     })
-    List<FestivalOccurrence> findAllBy();
-
-    @EntityGraph(attributePaths = {
-            "festival",
-            "state"
-    })
-    List<FestivalOccurrence> findAllByState_Id(Long stateId);
-
-    @EntityGraph(attributePaths = {
-            "festival",
-            "state"
-    })
-    List<FestivalOccurrence> findAllByYear(Integer year);
-
-    @EntityGraph(attributePaths = {
-            "festival",
-            "state"
-    })
-    List<FestivalOccurrence> findAllByStartDateGreaterThanEqualOrderByStartDate(
-            LocalDate date
+    Optional<FestivalOccurrence> findWithFestivalAndStateById(
+            Long id
     );
-
-    @EntityGraph(attributePaths = {
-            "festival",
-            "state"
-    })
-    List<FestivalOccurrence> findAllByState_IdAndYear(
-            Long stateId,
-            Integer year
-    );
-
-    @EntityGraph(attributePaths = {
-            "festival",
-            "state"
-    })
-    Optional<FestivalOccurrence> findById(Long id);
 
     boolean existsByFestival_IdAndState_IdAndYear(
             Long festivalId,
@@ -63,5 +33,15 @@ public interface FestivalOccurrenceRepository
             Long stateId,
             Integer year,
             Long id
+    );
+
+    @Override
+    @EntityGraph(attributePaths = {
+            "festival",
+            "state"
+    })
+    List<FestivalOccurrence> findAll(
+            Specification<FestivalOccurrence> specification,
+            Sort sort
     );
 }

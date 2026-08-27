@@ -9,11 +9,15 @@ import com.tourism.backend.festivaloccurrence.dto.FestivalOccurrenceResponse;
 import com.tourism.backend.festivaloccurrence.entity.FestivalOccurrence;
 import com.tourism.backend.festivaloccurrence.mapper.FestivalOccurrenceMapper;
 import com.tourism.backend.festivaloccurrence.repository.FestivalOccurrenceRepository;
+import com.tourism.backend.festivaloccurrence.specification.FestivalOccurrenceSpecification;
 import com.tourism.backend.state.entity.State;
 import com.tourism.backend.state.repository.StateRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -21,6 +25,7 @@ import java.util.List;
 @Service
 @RequiredArgsConstructor
 @Slf4j
+@Transactional
 public class FestivalOccurrenceServiceImpl
         implements FestivalOccurrenceService {
 
@@ -57,7 +62,10 @@ public class FestivalOccurrenceServiceImpl
         FestivalOccurrence saved =
                 occurrenceRepository.save(occurrence);
 
-        log.info("Festival occurrence created with id {}", saved.getId());
+        log.info(
+                "Festival occurrence created with id {}",
+                saved.getId()
+        );
 
         return mapper.toResponse(saved);
     }
@@ -67,7 +75,10 @@ public class FestivalOccurrenceServiceImpl
             Long id,
             FestivalOccurrenceRequest request) {
 
-        log.info("Updating festival occurrence {}", id);
+        log.info(
+                "Updating festival occurrence {}",
+                id
+        );
 
         validateDates(request);
 
@@ -86,63 +97,101 @@ public class FestivalOccurrenceServiceImpl
             );
         }
 
-        Festival festival = getFestival(request.getFestivalId());
+        Festival festival =
+                getFestival(request.getFestivalId());
 
-        State state = getState(request.getStateId());
+        State state =
+                getState(request.getStateId());
 
         mapper.updateEntity(
                 occurrence,
                 request,
                 festival,
-                state);
+                state
+        );
 
         FestivalOccurrence updated =
                 occurrenceRepository.save(occurrence);
 
-        log.info("Festival occurrence updated {}", id);
+        log.info(
+                "Festival occurrence updated {}",
+                id
+        );
 
         return mapper.toResponse(updated);
     }
 
     @Override
+    @Transactional(readOnly = true)
     public FestivalOccurrenceResponse getById(Long id) {
 
-        return mapper.toResponse(getOccurrence(id));
+        FestivalOccurrence occurrence =
+                occurrenceRepository
+                        .findWithFestivalAndStateById(id)
+                        .orElseThrow(() ->
+                                new ResourceNotFoundException(
+                                        "Festival occurrence not found with id: "
+                                                + id
+                                )
+                        );
+
+        return mapper.toResponse(occurrence);
     }
 
     @Override
-    public List<FestivalOccurrenceResponse> getAll() {
+    @Transactional(readOnly = true)
+    public List<FestivalOccurrenceResponse> getAll(
+            Long stateId,
+            Integer year) {
 
-        return occurrenceRepository.findAllBy()
-                .stream()
-                .map(mapper::toResponse)
-                .toList();
-    }
+        log.info(
+                "Fetching festival occurrences with filters: " +
+                        "stateId={}, year={}",
+                stateId,
+                year
+        );
 
-    @Override
-    public List<FestivalOccurrenceResponse> getByState(Long stateId) {
-
-        return occurrenceRepository.findAllByState_Id(stateId)
-                .stream()
-                .map(mapper::toResponse)
-                .toList();
-    }
-
-    @Override
-    public List<FestivalOccurrenceResponse> getByYear(Integer year) {
-
-        return occurrenceRepository.findAllByYear(year)
-                .stream()
-                .map(mapper::toResponse)
-                .toList();
-    }
-
-    @Override
-    public List<FestivalOccurrenceResponse> getUpcoming() {
+        Specification<FestivalOccurrence> specification =
+                Specification
+                        .where(
+                                FestivalOccurrenceSpecification
+                                        .hasStateId(stateId)
+                        )
+                        .and(
+                                FestivalOccurrenceSpecification
+                                        .hasYear(year)
+                        );
 
         return occurrenceRepository
-                .findAllByStartDateGreaterThanEqualOrderByStartDate(
-                        LocalDate.now())
+                .findAll(
+                        specification,
+                        Sort.by(
+                                Sort.Order.asc("startDate"),
+                                Sort.Order.asc("year")
+                        )
+                )
+                .stream()
+                .map(mapper::toResponse)
+                .toList();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<FestivalOccurrenceResponse> getUpcoming() {
+
+        log.info("Fetching upcoming festival occurrences");
+
+        Specification<FestivalOccurrence> specification =
+                FestivalOccurrenceSpecification
+                        .startsOnOrAfter(LocalDate.now());
+
+        return occurrenceRepository
+                .findAll(
+                        specification,
+                        Sort.by(
+                                Sort.Order.asc("startDate")
+                        )
+                )
                 .stream()
                 .map(mapper::toResponse)
                 .toList();
@@ -151,21 +200,15 @@ public class FestivalOccurrenceServiceImpl
     @Override
     public void delete(Long id) {
 
-        occurrenceRepository.delete(getOccurrence(id));
+        FestivalOccurrence occurrence =
+                getOccurrence(id);
 
-        log.info("Festival occurrence deleted {}", id);
-    }
+        occurrenceRepository.delete(occurrence);
 
-    @Override
-    public List<FestivalOccurrenceResponse> getByStateAndYear(
-            Long stateId,
-            Integer year) {
-
-        return occurrenceRepository
-                .findAllByState_IdAndYear(stateId, year)
-                .stream()
-                .map(mapper::toResponse)
-                .toList();
+        log.info(
+                "Festival occurrence deleted {}",
+                id
+        );
     }
 
     private Festival getFestival(Long id) {
@@ -173,7 +216,9 @@ public class FestivalOccurrenceServiceImpl
         return festivalRepository.findById(id)
                 .orElseThrow(() ->
                         new ResourceNotFoundException(
-                                "Festival not found with id: " + id));
+                                "Festival not found with id: " + id
+                        )
+                );
     }
 
     private State getState(Long id) {
@@ -181,24 +226,32 @@ public class FestivalOccurrenceServiceImpl
         return stateRepository.findById(id)
                 .orElseThrow(() ->
                         new ResourceNotFoundException(
-                                "State not found with id: " + id));
+                                "State not found with id: " + id
+                        )
+                );
     }
 
     private FestivalOccurrence getOccurrence(Long id) {
 
-        return occurrenceRepository.findById(id)
+        return occurrenceRepository
+                .findWithFestivalAndStateById(id)
                 .orElseThrow(() ->
                         new ResourceNotFoundException(
-                                "Festival occurrence not found with id: " + id));
+                                "Festival occurrence not found with id: "
+                                        + id
+                        )
+                );
     }
 
     private void validateDates(
             FestivalOccurrenceRequest request) {
 
-        if (request.getEndDate().isBefore(request.getStartDate())) {
+        if (request.getEndDate()
+                .isBefore(request.getStartDate())) {
 
             throw new IllegalArgumentException(
-                    "End date cannot be before start date.");
+                    "End date cannot be before start date."
+            );
         }
     }
 }

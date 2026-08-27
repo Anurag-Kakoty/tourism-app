@@ -16,18 +16,12 @@ public interface FestivalOccurrenceService {
             FestivalOccurrenceRequest request
     );
 
-    List<FestivalOccurrenceResponse> getByStateAndYear(
+    FestivalOccurrenceResponse getById(Long id);
+
+    List<FestivalOccurrenceResponse> getAll(
             Long stateId,
             Integer year
     );
-
-    FestivalOccurrenceResponse getById(Long id);
-
-    List<FestivalOccurrenceResponse> getAll();
-
-    List<FestivalOccurrenceResponse> getByState(Long stateId);
-
-    List<FestivalOccurrenceResponse> getByYear(Integer year);
 
     List<FestivalOccurrenceResponse> getUpcoming();
 
