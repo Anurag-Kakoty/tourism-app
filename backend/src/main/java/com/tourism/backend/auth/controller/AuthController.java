@@ -1,5 +1,7 @@
 package com.tourism.backend.auth.controller;
 
+import com.tourism.backend.auth.dto.LoginRequest;
+import com.tourism.backend.auth.dto.LoginResponse;
 import com.tourism.backend.auth.dto.RegisterRequest;
 import com.tourism.backend.auth.dto.UserResponse;
 import com.tourism.backend.auth.service.AuthService;
@@ -21,5 +23,12 @@ public class AuthController {
             @Valid @RequestBody RegisterRequest request) {
 
         return authService.register(request);
+    }
+
+    @PostMapping("/login")
+    public LoginResponse login(
+            @Valid @RequestBody LoginRequest request) {
+
+        return authService.login(request);
     }
 }
