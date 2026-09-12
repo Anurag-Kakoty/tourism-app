@@ -3,6 +3,8 @@ package com.tourism.backend.config;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+import org.springframework.http.HttpMethod;
+
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.ProviderManager;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
@@ -87,23 +89,49 @@ public class SecurityConfig {
         http
                 .csrf(csrf -> csrf.disable())
 
+                .cors(cors -> {})
+
                 .authorizeHttpRequests(auth -> auth
+
+                        // CORS preflight requests
                         .requestMatchers(
-                                // Swagger UI
+                                HttpMethod.OPTIONS,
+                                "/**"
+                        ).permitAll()
+
+                        // Swagger UI
+                        .requestMatchers(
                                 "/swagger",
                                 "/swagger/**",
                                 "/swagger-ui.html",
                                 "/swagger-ui/**",
-
-                                // OpenAPI documentation
                                 "/api-docs",
-                                "/api-docs/**",
+                                "/api-docs/**"
+                        ).permitAll()
 
-                                // Authentication
+                        // Authentication
+                        .requestMatchers(
                                 "/api/auth/register",
                                 "/api/auth/login"
                         ).permitAll()
 
+                        // Public tourism browsing
+                        .requestMatchers(
+                                HttpMethod.GET,
+                                "/api/states/**",
+                                "/api/destinations/**",
+                                "/api/attractions/**",
+                                "/api/tags/**",
+                                "/api/experiences/**",
+                                "/api/accommodations/**",
+                                "/api/guides/**",
+                                "/api/restaurants/**",
+                                "/api/transport/**",
+                                "/api/festivals/**",
+                                "/api/festival-occurrences/**"
+                        ).permitAll()
+
+                        // Everything else requires authentication
                         .anyRequest().authenticated()
                 )
 

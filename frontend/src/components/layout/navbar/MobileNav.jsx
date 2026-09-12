@@ -2,7 +2,12 @@ import { NavLink } from "react-router-dom";
 import Button from "../../common/inputs/Button";
 import navigation from "../../../constants/navigation";
 
-export default function MobileNav({ isOpen, onClose }) {
+export default function MobileNav({
+  isOpen,
+  onClose,
+  user,
+  onLogout,
+}) {
   if (!isOpen) return null;
 
   return (
@@ -40,9 +45,41 @@ export default function MobileNav({ isOpen, onClose }) {
         <Button
           to="/itinerary"
           className="mt-6 w-full"
+          onClick={onClose}
         >
           Plan My Trip
         </Button>
+
+        {user ? (
+          <>
+            <div className="mt-4 rounded-lg bg-slate-50 px-4 py-3 text-center">
+              <p className="text-sm text-slate-500">
+                Signed in as
+              </p>
+
+              <p className="font-medium text-slate-700">
+                {user.name}
+              </p>
+            </div>
+
+            <Button
+              variant="outline"
+              className="mt-3 w-full"
+              onClick={onLogout}
+            >
+              Logout
+            </Button>
+          </>
+        ) : (
+          <Button
+            to="/login"
+            variant="outline"
+            className="mt-3 w-full"
+            onClick={onClose}
+          >
+            Login
+          </Button>
+        )}
 
       </nav>
     </div>

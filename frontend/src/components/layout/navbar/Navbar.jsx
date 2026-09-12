@@ -7,10 +7,12 @@ import MobileNav from "./MobileNav";
 
 import Button from "../../common/inputs/Button";
 import Container from "../../common/layout/Container";
+import authService from "../../../services/authService";
 
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const [user, setUser] = useState(authService.getCurrentUser());
 
   useEffect(() => {
     const handleScroll = () => {
@@ -21,6 +23,24 @@ export default function Navbar() {
 
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
+
+  useEffect(() => {
+    const handleAuthChange = () => {
+      setUser(authService.getCurrentUser());
+    };
+
+    window.addEventListener("authChange", handleAuthChange);
+
+    return () => {
+      window.removeEventListener("authChange", handleAuthChange);
+    };
+  }, []);
+
+  const handleLogout = () => {
+    authService.logout();
+    setUser(null);
+    setIsOpen(false);
+  };
 
   return (
     <header
@@ -37,10 +57,32 @@ export default function Navbar() {
 
         <DesktopNav />
 
-        <div className="hidden lg:block">
+        <div className="hidden items-center gap-3 lg:flex">
           <Button to="/itinerary">
             Plan My Trip
           </Button>
+
+          {user ? (
+            <>
+              <span className="text-sm font-medium text-slate-700">
+                Hi, {user.name}
+              </span>
+
+              <Button
+                variant="outline"
+                onClick={handleLogout}
+              >
+                Logout
+              </Button>
+            </>
+          ) : (
+            <Button
+              to="/login"
+              variant="outline"
+            >
+              Login
+            </Button>
+          )}
         </div>
 
         <button
@@ -59,6 +101,8 @@ export default function Navbar() {
       <MobileNav
         isOpen={isOpen}
         onClose={() => setIsOpen(false)}
+        user={user}
+        onLogout={handleLogout}
       />
     </header>
   );
