@@ -1,4 +1,6 @@
 const API = {
+  AUTH: "/auth",
+  
   ATTRACTIONS: "/attractions",
   DESTINATIONS: "/destinations",
   STATES: "/states",
