@@ -1,5 +1,6 @@
 import { Routes, Route } from "react-router-dom";
 
+import Login from "../pages/Auth/Login/Login";
 import Home from "../pages/Home/Home";
 import Places from "../pages/Places/Places";
 import PlaceDetails from "../pages/Places/PlaceDetails";
@@ -11,7 +12,7 @@ import FestivalCalendar from "../pages/Festivals/FestivalCalendar";
 import Stay from "../pages/Stay/Stay";
 import StayDetails from "../pages/Stay/StayDetails";
 import Guides from "../pages/Guides/Guides";
-import GuidesDetails from "../pages/Guides/GuideDetails";
+import GuideDetails from "../pages/Guides/GuideDetails";
 import Transport from "../pages/Transport/Transport";
 import TransportDetails from "../pages/Transport/TransportDetails";
 import Itinerary from "../pages/Itinerary/Itinerary";
@@ -20,12 +21,12 @@ import States from "../pages/States/States";
 import StateDetails from "../pages/States/StateDetails";
 import Destinations from "../pages/Destinations/Destinations";
 import DestinationDetails from "../pages/Destinations/DestinationDetails";
-import GuideDetails from "../pages/Guides/GuideDetails";
 
 export default function AppRoutes() {
   return (
     <Routes>
       <Route path="/" element={<Home />} />
+      <Route path="/login" element={<Login />} />
       <Route path="/places" element={<Places />} />
       <Route path="/places/:id" element={<PlaceDetails />} />
       <Route path="/states" element={<States />}/>
