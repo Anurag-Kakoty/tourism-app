@@ -1,6 +1,7 @@
 import { Routes, Route } from "react-router-dom";
 
 import Login from "../pages/Auth/Login/Login";
+import Register from "../pages/Auth/Register/Register";
 import Home from "../pages/Home/Home";
 import Places from "../pages/Places/Places";
 import PlaceDetails from "../pages/Places/PlaceDetails";
@@ -27,6 +28,7 @@ export default function AppRoutes() {
     <Routes>
       <Route path="/" element={<Home />} />
       <Route path="/login" element={<Login />} />
+      <Route path="/register" element={<Register />} />
       <Route path="/places" element={<Places />} />
       <Route path="/places/:id" element={<PlaceDetails />} />
       <Route path="/states" element={<States />}/>
