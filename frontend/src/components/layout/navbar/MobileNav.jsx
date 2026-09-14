@@ -1,4 +1,8 @@
 import { NavLink } from "react-router-dom";
+import {
+  HiOutlineUserCircle,
+} from "react-icons/hi2";
+
 import Button from "../../common/inputs/Button";
 import navigation from "../../../constants/navigation";
 
@@ -20,7 +24,7 @@ export default function MobileNav({
         bg-white
         transition-all
         duration-300
-        ${isOpen ? "max-h-96" : "max-h-0"}
+        ${isOpen ? "max-h-[calc(100vh-5rem)]" : "max-h-0"}
       `}
     >
       <nav className="flex flex-col p-6">
@@ -51,25 +55,45 @@ export default function MobileNav({
         </Button>
 
         {user ? (
-          <>
-            <div className="mt-4 rounded-lg bg-slate-50 px-4 py-3 text-center">
-              <p className="text-sm text-slate-500">
-                Signed in as
-              </p>
+          <div className="mt-4 border-t border-slate-200 pt-4">
+            <div className="flex items-center gap-3 rounded-lg bg-slate-50 px-4 py-3">
+              <HiOutlineUserCircle
+                size={36}
+                className="shrink-0 text-slate-600"
+              />
 
-              <p className="font-medium text-slate-700">
-                {user.name}
-              </p>
+              <div className="min-w-0">
+                <p className="truncate font-medium text-[var(--color-text)]">
+                  {user.name}
+                </p>
+
+                <p className="truncate text-sm text-slate-500">
+                  {user.email}
+                </p>
+              </div>
             </div>
 
-            <Button
-              variant="outline"
-              className="mt-3 w-full"
+            <button
+              type="button"
               onClick={onLogout}
+              className="
+                mt-3
+                w-full
+                rounded-lg
+                border
+                border-slate-200
+                px-4
+                py-3
+                text-sm
+                font-medium
+                text-slate-700
+                transition-colors
+                hover:bg-slate-100
+              "
             >
               Logout
-            </Button>
-          </>
+            </button>
+          </div>
         ) : (
           <Button
             to="/login"
