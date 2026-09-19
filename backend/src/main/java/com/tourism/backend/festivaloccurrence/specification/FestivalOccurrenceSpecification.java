@@ -57,4 +57,52 @@ public final class FestivalOccurrenceSpecification {
             );
         };
     }
+
+    public static Specification<FestivalOccurrence> endsOnOrAfter(
+            LocalDate date) {
+
+        return (root, query, criteriaBuilder) -> {
+
+            if (date == null) {
+                return null;
+            }
+
+            return criteriaBuilder.greaterThanOrEqualTo(
+                    root.get("endDate"),
+                    date
+            );
+        };
+    }
+
+    public static Specification<FestivalOccurrence> startsOnOrBefore(
+            LocalDate date) {
+
+        return (root, query, criteriaBuilder) -> {
+
+            if (date == null) {
+                return null;
+            }
+
+            return criteriaBuilder.lessThanOrEqualTo(
+                    root.get("startDate"),
+                    date
+            );
+        };
+    }
+
+    public static Specification<FestivalOccurrence> hasFestivalId(
+            Long festivalId) {
+
+        return (root, query, criteriaBuilder) -> {
+
+            if (festivalId == null) {
+                return null;
+            }
+
+            return criteriaBuilder.equal(
+                    root.get("festival").get("id"),
+                    festivalId
+            );
+        };
+    }
 }
