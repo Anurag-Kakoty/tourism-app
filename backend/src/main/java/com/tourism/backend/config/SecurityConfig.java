@@ -23,10 +23,14 @@ import org.springframework.security.oauth2.jwt.JwtEncoder;
 import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
 import org.springframework.security.oauth2.jwt.NimbusJwtEncoder;
 
+import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
+import org.springframework.security.oauth2.server.resource.authentication.JwtGrantedAuthoritiesConverter;
+
 import org.springframework.security.web.SecurityFilterChain;
 
 import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
+
 import java.nio.charset.StandardCharsets;
 
 @Configuration
@@ -82,9 +86,41 @@ public class SecurityConfig {
         return new ProviderManager(provider);
     }
 
+    /*
+     * Converts the "role" claim from our JWT:
+     *
+     *     "role": "ADMIN"
+     *
+     * into:
+     *
+     *     ROLE_ADMIN
+     *
+     * so that hasRole("ADMIN") works.
+     */
+    @Bean
+    public JwtAuthenticationConverter jwtAuthenticationConverter() {
+
+        JwtGrantedAuthoritiesConverter authoritiesConverter =
+                new JwtGrantedAuthoritiesConverter();
+
+        authoritiesConverter.setAuthoritiesClaimName("role");
+        authoritiesConverter.setAuthorityPrefix("ROLE_");
+
+        JwtAuthenticationConverter authenticationConverter =
+                new JwtAuthenticationConverter();
+
+        authenticationConverter.setJwtGrantedAuthoritiesConverter(
+                authoritiesConverter
+        );
+
+        return authenticationConverter;
+    }
+
     @Bean
     public SecurityFilterChain securityFilterChain(
-            HttpSecurity http) throws Exception {
+            HttpSecurity http,
+            JwtAuthenticationConverter jwtAuthenticationConverter)
+            throws Exception {
 
         http
                 .csrf(csrf -> csrf.disable())
@@ -93,13 +129,13 @@ public class SecurityConfig {
 
                 .authorizeHttpRequests(auth -> auth
 
-                        // CORS preflight requests
+                        // CORS preflight
                         .requestMatchers(
                                 HttpMethod.OPTIONS,
                                 "/**"
                         ).permitAll()
 
-                        // Swagger UI
+                        // Swagger
                         .requestMatchers(
                                 "/swagger",
                                 "/swagger/**",
@@ -131,12 +167,86 @@ public class SecurityConfig {
                                 "/api/festival-occurrences/**"
                         ).permitAll()
 
-                        // Everything else requires authentication
+                        // Itineraries require authentication.
+                        // Ownership is handled by ItineraryService.
+                        .requestMatchers(
+                                "/api/itineraries/**"
+                        ).authenticated()
+
+                        // Admin-only tourism data creation
+                        .requestMatchers(
+                                HttpMethod.POST,
+                                "/api/states/**",
+                                "/api/destinations/**",
+                                "/api/attractions/**",
+                                "/api/tags/**",
+                                "/api/experiences/**",
+                                "/api/accommodations/**",
+                                "/api/guides/**",
+                                "/api/restaurants/**",
+                                "/api/transport/**",
+                                "/api/festivals/**",
+                                "/api/festival-occurrences/**"
+                        ).hasRole("ADMIN")
+
+                        // Admin-only tourism data updates
+                        .requestMatchers(
+                                HttpMethod.PUT,
+                                "/api/states/**",
+                                "/api/destinations/**",
+                                "/api/attractions/**",
+                                "/api/tags/**",
+                                "/api/experiences/**",
+                                "/api/accommodations/**",
+                                "/api/guides/**",
+                                "/api/restaurants/**",
+                                "/api/transport/**",
+                                "/api/festivals/**",
+                                "/api/festival-occurrences/**"
+                        ).hasRole("ADMIN")
+
+                        // Admin-only partial updates
+                        .requestMatchers(
+                                HttpMethod.PATCH,
+                                "/api/states/**",
+                                "/api/destinations/**",
+                                "/api/attractions/**",
+                                "/api/tags/**",
+                                "/api/experiences/**",
+                                "/api/accommodations/**",
+                                "/api/guides/**",
+                                "/api/restaurants/**",
+                                "/api/transport/**",
+                                "/api/festivals/**",
+                                "/api/festival-occurrences/**"
+                        ).hasRole("ADMIN")
+
+                        // Admin-only deletion
+                        .requestMatchers(
+                                HttpMethod.DELETE,
+                                "/api/states/**",
+                                "/api/destinations/**",
+                                "/api/attractions/**",
+                                "/api/tags/**",
+                                "/api/experiences/**",
+                                "/api/accommodations/**",
+                                "/api/guides/**",
+                                "/api/restaurants/**",
+                                "/api/transport/**",
+                                "/api/festivals/**",
+                                "/api/festival-occurrences/**"
+                        ).hasRole("ADMIN")
+
+                        // Everything else
                         .anyRequest().authenticated()
                 )
 
                 .oauth2ResourceServer(oauth2 ->
-                        oauth2.jwt(jwt -> {})
+                        oauth2.jwt(jwt ->
+                                jwt.jwtAuthenticationConverter(
+                                        jwtAuthenticationConverter
+                                )
+                        )
                 );
 
         return http.build();
