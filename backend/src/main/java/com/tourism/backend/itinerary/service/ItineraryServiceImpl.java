@@ -22,12 +22,18 @@ import com.tourism.backend.itinerary.mapper.ItineraryItemMapper;
 import com.tourism.backend.itinerary.mapper.ItineraryMapper;
 import com.tourism.backend.itinerary.repository.ItineraryItemRepository;
 import com.tourism.backend.itinerary.repository.ItineraryRepository;
+import com.tourism.backend.itinerary.specification.ItinerarySpecification;
 import com.tourism.backend.restaurant.entity.Restaurant;
 import com.tourism.backend.restaurant.repository.RestaurantRepository;
 import com.tourism.backend.transport.entity.Transport;
 import com.tourism.backend.transport.repository.TransportRepository;
+import com.tourism.backend.user.entity.User;
+import com.tourism.backend.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.jpa.domain.Specification;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -43,7 +49,6 @@ public class ItineraryServiceImpl implements ItineraryService {
     private final ItineraryItemRepository itineraryItemRepository;
 
     private final DestinationRepository destinationRepository;
-
     private final AttractionRepository attractionRepository;
     private final AccommodationRepository accommodationRepository;
     private final RestaurantRepository restaurantRepository;
@@ -51,12 +56,16 @@ public class ItineraryServiceImpl implements ItineraryService {
     private final TransportRepository transportRepository;
     private final FestivalRepository festivalRepository;
 
+    private final UserRepository userRepository;
+
     private final ItineraryMapper itineraryMapper;
     private final ItineraryItemMapper itineraryItemMapper;
 
     @Override
     public ItineraryResponse createItinerary(
             ItineraryRequest request) {
+
+        User currentUser = getCurrentUser();
 
         Destination destination =
                 getDestination(request.getDestinationId());
@@ -66,12 +75,15 @@ public class ItineraryServiceImpl implements ItineraryService {
                         request,
                         destination);
 
+        itinerary.setUser(currentUser);
+
         Itinerary saved =
                 itineraryRepository.save(itinerary);
 
         log.info(
-                "Itinerary created with ID {}",
-                saved.getId());
+                "Itinerary created with ID {} for user {}",
+                saved.getId(),
+                currentUser.getId());
 
         return buildResponse(saved);
     }
@@ -81,8 +93,10 @@ public class ItineraryServiceImpl implements ItineraryService {
             Long id,
             ItineraryRequest request) {
 
+        User currentUser = getCurrentUser();
+
         Itinerary itinerary =
-                getItinerary(id);
+                getItinerary(id, currentUser.getId());
 
         Destination destination =
                 getDestination(request.getDestinationId());
@@ -96,8 +110,9 @@ public class ItineraryServiceImpl implements ItineraryService {
                 itineraryRepository.save(itinerary);
 
         log.info(
-                "Itinerary {} updated",
-                id);
+                "Itinerary {} updated by user {}",
+                id,
+                currentUser.getId());
 
         return buildResponse(updated);
     }
@@ -106,7 +121,10 @@ public class ItineraryServiceImpl implements ItineraryService {
     @Transactional(readOnly = true)
     public ItineraryResponse getItineraryById(Long id) {
 
-        Itinerary itinerary = getItinerary(id);
+        User currentUser = getCurrentUser();
+
+        Itinerary itinerary =
+                getItinerary(id, currentUser.getId());
 
         return buildResponse(itinerary);
     }
@@ -115,7 +133,17 @@ public class ItineraryServiceImpl implements ItineraryService {
     @Transactional(readOnly = true)
     public List<ItineraryResponse> getAllItineraries() {
 
-        return itineraryRepository.findAllBy()
+        User currentUser = getCurrentUser();
+
+        Specification<Itinerary> specification =
+                Specification
+                        .where(
+                                ItinerarySpecification
+                                        .hasUserId(currentUser.getId())
+                        );
+
+        return itineraryRepository
+                .findAll(specification)
                 .stream()
                 .map(this::buildResponse)
                 .toList();
@@ -126,8 +154,21 @@ public class ItineraryServiceImpl implements ItineraryService {
     public List<ItineraryResponse> getItinerariesByDestination(
             Long destinationId) {
 
+        User currentUser = getCurrentUser();
+
+        Specification<Itinerary> specification =
+                Specification
+                        .where(
+                                ItinerarySpecification
+                                        .hasUserId(currentUser.getId())
+                        )
+                        .and(
+                                ItinerarySpecification
+                                        .hasDestinationId(destinationId)
+                        );
+
         return itineraryRepository
-                .findAllByDestination_Id(destinationId)
+                .findAll(specification)
                 .stream()
                 .map(this::buildResponse)
                 .toList();
@@ -136,13 +177,17 @@ public class ItineraryServiceImpl implements ItineraryService {
     @Override
     public void deleteItinerary(Long id) {
 
-        Itinerary itinerary = getItinerary(id);
+        User currentUser = getCurrentUser();
+
+        Itinerary itinerary =
+                getItinerary(id, currentUser.getId());
 
         itineraryRepository.delete(itinerary);
 
         log.info(
-                "Itinerary {} deleted",
-                id);
+                "Itinerary {} deleted by user {}",
+                id,
+                currentUser.getId());
     }
 
     @Override
@@ -150,7 +195,12 @@ public class ItineraryServiceImpl implements ItineraryService {
             Long itineraryId,
             ItineraryItemRequest request) {
 
-        Itinerary itinerary = getItinerary(itineraryId);
+        User currentUser = getCurrentUser();
+
+        Itinerary itinerary =
+                getItinerary(
+                        itineraryId,
+                        currentUser.getId());
 
         validateReference(
                 request.getActivityType(),
@@ -164,8 +214,9 @@ public class ItineraryServiceImpl implements ItineraryService {
         itineraryItemRepository.save(item);
 
         log.info(
-                "Item added to itinerary {}",
-                itineraryId);
+                "Item added to itinerary {} by user {}",
+                itineraryId,
+                currentUser.getId());
 
         return buildResponse(itinerary);
     }
@@ -176,11 +227,19 @@ public class ItineraryServiceImpl implements ItineraryService {
             Long itemId,
             ItineraryItemRequest request) {
 
-        Itinerary itinerary = getItinerary(itineraryId);
+        User currentUser = getCurrentUser();
 
-        ItineraryItem item = getItem(itemId);
+        Itinerary itinerary =
+                getItinerary(
+                        itineraryId,
+                        currentUser.getId());
 
-        if (!item.getItinerary().getId().equals(itineraryId)) {
+        ItineraryItem item =
+                getItem(itemId);
+
+        if (!item.getItinerary()
+                .getId()
+                .equals(itineraryId)) {
 
             throw new ResourceNotFoundException(
                     "Item does not belong to itinerary.");
@@ -197,8 +256,9 @@ public class ItineraryServiceImpl implements ItineraryService {
         itineraryItemRepository.save(item);
 
         log.info(
-                "Item {} updated",
-                itemId);
+                "Item {} updated by user {}",
+                itemId,
+                currentUser.getId());
 
         return buildResponse(itinerary);
     }
@@ -208,11 +268,19 @@ public class ItineraryServiceImpl implements ItineraryService {
             Long itineraryId,
             Long itemId) {
 
-        Itinerary itinerary = getItinerary(itineraryId);
+        User currentUser = getCurrentUser();
 
-        ItineraryItem item = getItem(itemId);
+        Itinerary itinerary =
+                getItinerary(
+                        itineraryId,
+                        currentUser.getId());
 
-        if (!item.getItinerary().getId().equals(itineraryId)) {
+        ItineraryItem item =
+                getItem(itemId);
+
+        if (!item.getItinerary()
+                .getId()
+                .equals(itineraryId)) {
 
             throw new ResourceNotFoundException(
                     "Item does not belong to itinerary.");
@@ -221,8 +289,9 @@ public class ItineraryServiceImpl implements ItineraryService {
         itineraryItemRepository.delete(item);
 
         log.info(
-                "Item {} deleted",
-                itemId);
+                "Item {} deleted by user {}",
+                itemId,
+                currentUser.getId());
 
         return buildResponse(itinerary);
     }
@@ -241,7 +310,8 @@ public class ItineraryServiceImpl implements ItineraryService {
                         .map(item -> {
 
                             ItineraryItemResponse dto =
-                                    itineraryItemMapper.toResponse(item);
+                                    itineraryItemMapper
+                                            .toResponse(item);
 
                             dto.setReferenceName(
                                     getReferenceName(
@@ -273,37 +343,43 @@ public class ItineraryServiceImpl implements ItineraryService {
         return switch (activityType) {
 
             case ATTRACTION ->
-                    attractionRepository.findById(referenceId)
+                    attractionRepository
+                            .findById(referenceId)
                             .orElseThrow(() ->
                                     new ResourceNotFoundException(
                                             "Attraction not found."));
 
             case ACCOMMODATION ->
-                    accommodationRepository.findById(referenceId)
+                    accommodationRepository
+                            .findById(referenceId)
                             .orElseThrow(() ->
                                     new ResourceNotFoundException(
                                             "Accommodation not found."));
 
             case RESTAURANT ->
-                    restaurantRepository.findById(referenceId)
+                    restaurantRepository
+                            .findById(referenceId)
                             .orElseThrow(() ->
                                     new ResourceNotFoundException(
                                             "Restaurant not found."));
 
             case GUIDE ->
-                    guideRepository.findById(referenceId)
+                    guideRepository
+                            .findById(referenceId)
                             .orElseThrow(() ->
                                     new ResourceNotFoundException(
                                             "Guide not found."));
 
             case TRANSPORT ->
-                    transportRepository.findById(referenceId)
+                    transportRepository
+                            .findById(referenceId)
                             .orElseThrow(() ->
                                     new ResourceNotFoundException(
                                             "Transport not found."));
 
             case FESTIVAL ->
-                    festivalRepository.findById(referenceId)
+                    festivalRepository
+                            .findById(referenceId)
                             .orElseThrow(() ->
                                     new ResourceNotFoundException(
                                             "Festival not found."));
@@ -343,15 +419,21 @@ public class ItineraryServiceImpl implements ItineraryService {
 
     private Destination getDestination(Long id) {
 
-        return destinationRepository.findById(id)
+        return destinationRepository
+                .findById(id)
                 .orElseThrow(() ->
                         new ResourceNotFoundException(
                                 "Destination not found."));
     }
 
-    private Itinerary getItinerary(Long id) {
+    private Itinerary getItinerary(
+            Long id,
+            Long userId) {
 
-        return itineraryRepository.findWithItemsById(id)
+        return itineraryRepository
+                .findWithItemsByIdAndUser_Id(
+                        id,
+                        userId)
                 .orElseThrow(() ->
                         new ResourceNotFoundException(
                                 "Itinerary not found."));
@@ -359,9 +441,26 @@ public class ItineraryServiceImpl implements ItineraryService {
 
     private ItineraryItem getItem(Long id) {
 
-        return itineraryItemRepository.findById(id)
+        return itineraryItemRepository
+                .findById(id)
                 .orElseThrow(() ->
                         new ResourceNotFoundException(
                                 "Itinerary item not found."));
+    }
+
+    private User getCurrentUser() {
+
+        Authentication authentication =
+                SecurityContextHolder
+                        .getContext()
+                        .getAuthentication();
+
+        String email = authentication.getName();
+
+        return userRepository
+                .findByEmailIgnoreCase(email)
+                .orElseThrow(() ->
+                        new ResourceNotFoundException(
+                                "Authenticated user not found."));
     }
 }

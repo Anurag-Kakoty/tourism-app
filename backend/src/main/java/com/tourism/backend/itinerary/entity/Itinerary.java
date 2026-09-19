@@ -1,6 +1,7 @@
 package com.tourism.backend.itinerary.entity;
 
 import com.tourism.backend.destination.entity.Destination;
+import com.tourism.backend.user.entity.User;
 import com.tourism.backend.util.BaseEntity;
 import jakarta.persistence.*;
 import lombok.Getter;
@@ -40,6 +41,10 @@ public class Itinerary extends BaseEntity {
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "destination_id")
     private Destination destination;
+
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "user_id", nullable = false)
+    private User user;
 
     @OneToMany(
             mappedBy = "itinerary",
