@@ -1,4 +1,7 @@
 package com.tourism.backend.ai.config;
 
-public class AiProvider {
+public enum AiProvider {
+
+    OPENAI,
+    GEMINI
 }

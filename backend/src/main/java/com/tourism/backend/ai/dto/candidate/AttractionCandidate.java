@@ -11,11 +11,20 @@ import java.util.List;
 public class AttractionCandidate {
 
     private Long id;
+
     private String name;
+
     private String description;
+
     private String bestSeason;
+
     private BigDecimal entryFee;
+
     private Boolean featured;
+
+    private List<Long> experienceIds;
+
     private List<String> experiences;
+
     private List<String> tags;
 }

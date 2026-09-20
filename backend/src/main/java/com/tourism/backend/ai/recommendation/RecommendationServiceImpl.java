@@ -83,60 +83,75 @@ public class RecommendationServiceImpl
         Set<Long> selectedExperienceIds =
                 request.getExperienceIds() == null
                         ? Set.of()
-                        : new HashSet<>(
-                        request.getExperienceIds()
-                );
+                        : new HashSet<>(request.getExperienceIds());
 
-        /*
-         * The candidate DTO contains experience names rather than
-         * experience IDs. Therefore, at this stage we can only use
-         * experience matching when the request is extended with
-         * experience names or when we introduce an experience
-         * candidate lookup.
-         *
-         * For now, ranking uses fields that are directly available
-         * in the candidate.
-         */
-
-        List<ScoredAttraction> scored =
-                new ArrayList<>();
+        List<ScoredAttraction> scored = new ArrayList<>();
 
         for (AttractionCandidate candidate : candidates) {
 
             double score = 0.0;
 
+            /*
+             * Featured attractions receive a small ranking boost.
+             */
             if (Boolean.TRUE.equals(candidate.getFeatured())) {
                 score += 2.0;
             }
 
-            if (candidate.getExperiences() != null
-                    && !candidate.getExperiences().isEmpty()) {
+            /*
+             * Attractions with experiences are more useful
+             * for itinerary generation.
+             */
+            if (candidate.getExperienceIds() != null
+                    && !candidate.getExperienceIds().isEmpty()) {
                 score += 1.0;
             }
 
+            /*
+             * Attractions with tags provide additional context
+             * to the recommendation and AI layers.
+             */
             if (candidate.getTags() != null
                     && !candidate.getTags().isEmpty()) {
                 score += 1.0;
             }
 
-            BigDecimal entryFee =
-                    candidate.getEntryFee();
+            /*
+             * Prefer attractions whose entry fee fits
+             * within the user's budget.
+             */
+            BigDecimal entryFee = candidate.getEntryFee();
 
             if (entryFee != null) {
 
-                if (entryFee.compareTo(
-                        request.getBudget()
-                ) <= 0) {
-
+                if (entryFee.compareTo(request.getBudget()) <= 0) {
                     score += 1.0;
                 }
 
-                if (entryFee.compareTo(
-                        BigDecimal.ZERO
-                ) == 0) {
-
+                /*
+                 * Free attractions receive an additional boost.
+                 */
+                if (entryFee.compareTo(BigDecimal.ZERO) == 0) {
                     score += 1.0;
                 }
+            }
+
+            /*
+             * Actual experience matching.
+             *
+             * Each selected experience that belongs to the
+             * attraction increases its recommendation score.
+             */
+            if (!selectedExperienceIds.isEmpty()
+                    && candidate.getExperienceIds() != null) {
+
+                long matchingExperiences =
+                        candidate.getExperienceIds()
+                                .stream()
+                                .filter(selectedExperienceIds::contains)
+                                .count();
+
+                score += matchingExperiences * 3.0;
             }
 
             scored.add(
@@ -155,9 +170,7 @@ public class RecommendationServiceImpl
                                 )
                                 .reversed()
                                 .thenComparing(
-                                        item ->
-                                                item.candidate()
-                                                        .getName(),
+                                        item -> item.candidate().getName(),
                                         Comparator.nullsLast(
                                                 String.CASE_INSENSITIVE_ORDER
                                         )
@@ -179,10 +192,8 @@ public class RecommendationServiceImpl
         return candidates.stream()
                 .filter(candidate ->
                         candidate.getPricePerNight() != null
-                                && candidate
-                                .getPricePerNight()
-                                .compareTo(request.getBudget())
-                                <= 0
+                                && candidate.getPricePerNight()
+                                .compareTo(request.getBudget()) <= 0
                 )
                 .sorted(
                         Comparator
@@ -193,8 +204,7 @@ public class RecommendationServiceImpl
                                         )
                                 )
                                 .thenComparing(
-                                        AccommodationCandidate
-                                                ::getPricePerNight,
+                                        AccommodationCandidate::getPricePerNight,
                                         Comparator.nullsLast(
                                                 Comparator.naturalOrder()
                                         )
@@ -240,9 +250,7 @@ public class RecommendationServiceImpl
 
         return candidates.stream()
                 .filter(candidate ->
-                        Boolean.TRUE.equals(
-                                candidate.getAvailable()
-                        )
+                        Boolean.TRUE.equals(candidate.getAvailable())
                 )
                 .sorted(
                         Comparator
@@ -253,8 +261,7 @@ public class RecommendationServiceImpl
                                         )
                                 )
                                 .thenComparing(
-                                        GuideCandidate
-                                                ::getYearsOfExperience,
+                                        GuideCandidate::getYearsOfExperience,
                                         Comparator.nullsLast(
                                                 Comparator.reverseOrder()
                                         )
@@ -273,22 +280,18 @@ public class RecommendationServiceImpl
 
         return candidates.stream()
                 .filter(candidate ->
-                        Boolean.TRUE.equals(
-                                candidate.getAvailable()
-                        )
+                        Boolean.TRUE.equals(candidate.getAvailable())
                 )
                 .sorted(
                         Comparator
                                 .comparing(
-                                        TransportCandidate
-                                                ::getEstimatedFare,
+                                        TransportCandidate::getEstimatedFare,
                                         Comparator.nullsLast(
                                                 Comparator.naturalOrder()
                                         )
                                 )
                                 .thenComparing(
-                                        TransportCandidate
-                                                ::getProviderName,
+                                        TransportCandidate::getProviderName,
                                         Comparator.nullsLast(
                                                 String.CASE_INSENSITIVE_ORDER
                                         )
@@ -315,8 +318,7 @@ public class RecommendationServiceImpl
                                         )
                                 )
                                 .thenComparing(
-                                        FestivalCandidate
-                                                ::getStartDate,
+                                        FestivalCandidate::getStartDate,
                                         Comparator.nullsLast(
                                                 Comparator.naturalOrder()
                                         )

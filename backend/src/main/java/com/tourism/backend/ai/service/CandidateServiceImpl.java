@@ -32,6 +32,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
+import java.util.HashSet;
 import java.util.List;
 
 @Service
@@ -40,24 +41,15 @@ import java.util.List;
 public class CandidateServiceImpl implements CandidateService {
 
     private final AttractionRepository attractionRepository;
-
     private final AccommodationRepository accommodationRepository;
-
     private final RestaurantRepository restaurantRepository;
-
     private final GuideRepository guideRepository;
-
     private final TransportRepository transportRepository;
-
     private final DestinationRepository destinationRepository;
-
-    private final FestivalOccurrenceRepository
-            festivalOccurrenceRepository;
+    private final FestivalOccurrenceRepository festivalOccurrenceRepository;
 
     @Override
-    public AiCandidateContext getCandidates(
-            AiItineraryRequest request) {
-
+    public AiCandidateContext getCandidates(AiItineraryRequest request) {
         return AiCandidateContext.builder()
                 .attractions(getAttractions(request))
                 .accommodations(getAccommodations(request))
@@ -102,8 +94,7 @@ public class CandidateServiceImpl implements CandidateService {
                                 )
                 );
 
-        return accommodationRepository
-                .findAll(specification)
+        return accommodationRepository.findAll(specification)
                 .stream()
                 .map(this::toAccommodationCandidate)
                 .toList();
@@ -128,19 +119,12 @@ public class CandidateServiceImpl implements CandidateService {
 
         Specification<Guide> specification =
                 Specification
-                        .where(
-                                GuideSpecification
-                                        .hasDestinationId(
-                                                request.getDestinationId()
-                                        )
-                        )
-                        .and(
-                                GuideSpecification
-                                        .isAvailable(true)
-                        );
+                        .where(GuideSpecification.hasDestinationId(
+                                request.getDestinationId()
+                        ))
+                        .and(GuideSpecification.isAvailable(true));
 
-        return guideRepository
-                .findAll(specification)
+        return guideRepository.findAll(specification)
                 .stream()
                 .map(this::toGuideCandidate)
                 .toList();
@@ -165,22 +149,15 @@ public class CandidateServiceImpl implements CandidateService {
             AiItineraryRequest request) {
 
         Destination destination =
-                destinationRepository
-                        .findById(request.getDestinationId())
-                        .orElseThrow(() ->
-                                new ResourceNotFoundException(
-                                        "Destination not found."
-                                )
-                        );
+                destinationRepository.findById(request.getDestinationId())
+                        .orElseThrow(() -> new ResourceNotFoundException(
+                                "Destination not found."
+                        ));
 
-        Long stateId =
-                destination.getState().getId();
+        Long stateId = destination.getState().getId();
 
-        LocalDate startDate =
-                request.getStartDate();
-
-        LocalDate endDate =
-                request.getEndDate();
+        LocalDate startDate = request.getStartDate();
+        LocalDate endDate = request.getEndDate();
 
         Specification<FestivalOccurrence> specification =
                 Specification
@@ -190,9 +167,7 @@ public class CandidateServiceImpl implements CandidateService {
                         )
                         .and(
                                 FestivalOccurrenceSpecification
-                                        .hasYear(
-                                                startDate.getYear()
-                                        )
+                                        .hasYear(startDate.getYear())
                         )
                         .and(
                                 FestivalOccurrenceSpecification
@@ -204,12 +179,10 @@ public class CandidateServiceImpl implements CandidateService {
                         );
 
         if (request.getFestivalId() != null) {
-
             specification = specification.and(
-                    FestivalOccurrenceSpecification
-                            .hasFestivalId(
-                                    request.getFestivalId()
-                            )
+                    FestivalOccurrenceSpecification.hasFestivalId(
+                            request.getFestivalId()
+                    )
             );
         }
 
@@ -237,18 +210,22 @@ public class CandidateServiceImpl implements CandidateService {
                 .bestSeason(attraction.getBestSeason())
                 .entryFee(attraction.getEntryFee())
                 .featured(attraction.getFeatured())
+                .experienceIds(
+                        attraction.getExperiences()
+                                .stream()
+                                .map(experience -> experience.getId())
+                                .toList()
+                )
                 .experiences(
                         attraction.getExperiences()
                                 .stream()
-                                .map(experience ->
-                                        experience.getName())
+                                .map(experience -> experience.getName())
                                 .toList()
                 )
                 .tags(
                         attraction.getTags()
                                 .stream()
-                                .map(tag ->
-                                        tag.getName())
+                                .map(tag -> tag.getName())
                                 .toList()
                 )
                 .build();
@@ -262,12 +239,8 @@ public class CandidateServiceImpl implements CandidateService {
                 .name(accommodation.getName())
                 .description(accommodation.getDescription())
                 .type(accommodation.getType())
-                .pricePerNight(
-                        accommodation.getPricePerNight()
-                )
-                .rating(
-                        accommodation.getRating()
-                )
+                .pricePerNight(accommodation.getPricePerNight())
+                .rating(accommodation.getRating())
                 .build();
     }
 
@@ -285,29 +258,18 @@ public class CandidateServiceImpl implements CandidateService {
                 .build();
     }
 
-    private GuideCandidate toGuideCandidate(
-            Guide guide) {
+    private GuideCandidate toGuideCandidate(Guide guide) {
 
         return GuideCandidate.builder()
                 .id(guide.getId())
                 .name(guide.getName())
                 .bio(guide.getBio())
-                .languages(guide.getLanguages())
-                .yearsOfExperience(
-                        guide.getYearsOfExperience()
-                )
-                .pricePerDay(
-                        guide.getPricePerDay()
-                )
-                .rating(
-                        guide.getRating()
-                )
-                .available(
-                        guide.getAvailable()
-                )
-                .providesTransport(
-                        guide.getProvidesTransport()
-                )
+                .languages(new HashSet<>(guide.getLanguages()))
+                .yearsOfExperience(guide.getYearsOfExperience())
+                .pricePerDay(guide.getPricePerDay())
+                .rating(guide.getRating())
+                .available(guide.getAvailable())
+                .providesTransport(guide.getProvidesTransport())
                 .build();
     }
 
@@ -317,24 +279,12 @@ public class CandidateServiceImpl implements CandidateService {
         return TransportCandidate.builder()
                 .id(transport.getId())
                 .type(transport.getType())
-                .providerName(
-                        transport.getProviderName()
-                )
-                .pickupLocation(
-                        transport.getPickupLocation()
-                )
-                .dropLocation(
-                        transport.getDropLocation()
-                )
-                .estimatedDuration(
-                        transport.getEstimatedDuration()
-                )
-                .estimatedFare(
-                        transport.getEstimatedFare()
-                )
-                .available(
-                        transport.getAvailable()
-                )
+                .providerName(transport.getProviderName())
+                .pickupLocation(transport.getPickupLocation())
+                .dropLocation(transport.getDropLocation())
+                .estimatedDuration(transport.getEstimatedDuration())
+                .estimatedFare(transport.getEstimatedFare())
+                .available(transport.getAvailable())
                 .build();
     }
 
@@ -343,39 +293,17 @@ public class CandidateServiceImpl implements CandidateService {
 
         return FestivalCandidate.builder()
                 .occurrenceId(occurrence.getId())
-                .festivalId(
-                        occurrence.getFestival().getId()
-                )
-                .festivalName(
-                        occurrence.getFestival().getName()
-                )
-                .description(
-                        occurrence.getFestival().getDescription()
-                )
-                .category(
-                        occurrence.getFestival().getCategory()
-                )
-                .stateId(
-                        occurrence.getState().getId()
-                )
-                .stateName(
-                        occurrence.getState().getName()
-                )
-                .year(
-                        occurrence.getYear()
-                )
-                .startDate(
-                        occurrence.getStartDate()
-                )
-                .endDate(
-                        occurrence.getEndDate()
-                )
-                .confirmed(
-                        occurrence.getConfirmed()
-                )
-                .notes(
-                        occurrence.getNotes()
-                )
+                .festivalId(occurrence.getFestival().getId())
+                .festivalName(occurrence.getFestival().getName())
+                .description(occurrence.getFestival().getDescription())
+                .category(occurrence.getFestival().getCategory())
+                .stateId(occurrence.getState().getId())
+                .stateName(occurrence.getState().getName())
+                .year(occurrence.getYear())
+                .startDate(occurrence.getStartDate())
+                .endDate(occurrence.getEndDate())
+                .confirmed(occurrence.getConfirmed())
+                .notes(occurrence.getNotes())
                 .build();
     }
 }
