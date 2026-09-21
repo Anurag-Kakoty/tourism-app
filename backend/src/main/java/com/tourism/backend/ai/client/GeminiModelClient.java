@@ -12,6 +12,8 @@ import tools.jackson.databind.ObjectMapper;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -22,6 +24,18 @@ public class GeminiModelClient implements AiModelClient {
 
     private static final String GEMINI_BASE_URL =
             "https://generativelanguage.googleapis.com/v1beta/models/";
+
+    private static final DateTimeFormatter TIME_12_HOUR_FORMATTER =
+            DateTimeFormatter.ofPattern("hh:mm a");
+
+    private static final DateTimeFormatter TIME_12_HOUR_FORMATTER_NO_LEADING_ZERO =
+            DateTimeFormatter.ofPattern("h:mm a");
+
+    private static final DateTimeFormatter TIME_24_HOUR_FORMATTER =
+            DateTimeFormatter.ofPattern("HH:mm");
+
+    private static final DateTimeFormatter TIME_24_HOUR_SECONDS_FORMATTER =
+            DateTimeFormatter.ofPattern("HH:mm:ss");
 
     private final AiProperties aiProperties;
     private final ObjectMapper objectMapper;
@@ -135,6 +149,10 @@ public class GeminiModelClient implements AiModelClient {
                 11. Do not invent prices, ratings, locations, or
                     other database information.
                 12. Return only the requested JSON structure.
+                13. For every activity item, return the "time" field
+                    strictly in 24-hour HH:mm:ss format.
+                    Example: "08:00:00".
+                14. Do not return AM/PM in the time field.
 
                 TRAVEL REQUEST:
 
@@ -250,7 +268,9 @@ public class GeminiModelClient implements AiModelClient {
                                                 "time",
                                                 Map.of(
                                                         "type",
-                                                        "string"
+                                                        "string",
+                                                        "description",
+                                                        "Time in 24-hour HH:mm:ss format."
                                                 ),
 
                                                 "activityType",
@@ -398,7 +418,7 @@ public class GeminiModelClient implements AiModelClient {
                                                 .asInt()
                                 )
                                 .time(
-                                        LocalTime.parse(
+                                        parseTime(
                                                 item
                                                         .path("time")
                                                         .asText()
@@ -472,5 +492,76 @@ public class GeminiModelClient implements AiModelClient {
                 )
                 .items(items)
                 .build();
+    }
+
+    private LocalTime parseTime(String value) {
+
+        if (value == null || value.isBlank()) {
+            throw new IllegalArgumentException(
+                    "Generated itinerary contains an empty time."
+            );
+        }
+
+        String normalizedValue =
+                value.trim();
+
+        /*
+         * Standard ISO time:
+         *
+         * 08:00:00
+         */
+        try {
+            return LocalTime.parse(normalizedValue);
+        } catch (DateTimeParseException ignored) {
+            // Try the other supported formats below.
+        }
+
+        /*
+         * 24-hour format without seconds:
+         *
+         * 08:00
+         */
+        try {
+            return LocalTime.parse(
+                    normalizedValue,
+                    TIME_24_HOUR_FORMATTER
+            );
+        } catch (DateTimeParseException ignored) {
+            // Try the 12-hour format below.
+        }
+
+        /*
+         * 12-hour format:
+         *
+         * 08:00 AM
+         */
+        try {
+            return LocalTime.parse(
+                    normalizedValue.toUpperCase(),
+                    TIME_12_HOUR_FORMATTER
+            );
+        } catch (DateTimeParseException ignored) {
+            // Try without a leading zero.
+        }
+
+        /*
+         * 12-hour format without leading zero:
+         *
+         * 8:00 AM
+         */
+        try {
+            return LocalTime.parse(
+                    normalizedValue.toUpperCase(),
+                    TIME_12_HOUR_FORMATTER_NO_LEADING_ZERO
+            );
+        } catch (DateTimeParseException ignored) {
+            // All supported formats failed.
+        }
+
+        throw new IllegalArgumentException(
+                "Unsupported generated time format: "
+                        + value
+                        + ". Expected HH:mm:ss, HH:mm, or h:mm AM/PM."
+        );
     }
 }
