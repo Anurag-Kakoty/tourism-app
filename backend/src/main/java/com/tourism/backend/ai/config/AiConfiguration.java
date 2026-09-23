@@ -1,5 +1,6 @@
 package com.tourism.backend.ai.config;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -12,5 +13,10 @@ public class AiConfiguration {
     @Bean
     public RestClient.Builder restClientBuilder() {
         return RestClient.builder();
+    }
+
+    @Bean
+    public ObjectMapper objectMapper() {
+        return new ObjectMapper().findAndRegisterModules();
     }
 }

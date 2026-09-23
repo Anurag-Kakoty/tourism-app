@@ -15,6 +15,8 @@ public class AiProperties {
 
     private Gemini gemini = new Gemini();
 
+    private Ollama ollama = new Ollama();
+
     @Getter
     @Setter
     public static class OpenAi {
@@ -31,5 +33,14 @@ public class AiProperties {
         private String apiKey;
 
         private String model = "gemini-2.5-flash";
+    }
+
+    @Getter
+    @Setter
+    public static class Ollama {
+
+        private String baseUrl = "http://localhost:11434";
+
+        private String model = "qwen3:8b";
     }
 }
