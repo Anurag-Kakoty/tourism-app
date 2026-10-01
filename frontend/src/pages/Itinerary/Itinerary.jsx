@@ -1,5 +1,7 @@
 import { useState } from "react";
 
+import Button from "../../components/common/inputs/Button";
+import AddActivityForm from "../../components/itinerary/AddActivityForm";
 import AiItineraryForm from "../../components/itinerary/AiItineraryForm";
 import ItineraryDay from "../../components/itinerary/ItineraryDay";
 import aiItineraryService from "../../services/aiItineraryService";
@@ -8,10 +10,12 @@ function Itinerary() {
   const [loading, setLoading] = useState(false);
   const [draft, setDraft] = useState(null);
   const [error, setError] = useState("");
+  const [showAddActivity, setShowAddActivity] = useState(false);
 
   const handleGenerate = async (request) => {
     setLoading(true);
     setError("");
+    setShowAddActivity(false);
 
     try {
       const generatedItinerary =
@@ -19,10 +23,7 @@ function Itinerary() {
 
       setDraft(generatedItinerary);
     } catch (err) {
-      console.error(
-        "Failed to generate AI itinerary:",
-        err
-      );
+      console.error("Failed to generate AI itinerary:", err);
 
       setError(
         err.response?.data?.message ||
@@ -34,75 +35,43 @@ function Itinerary() {
   };
 
   const getDayItems = (dayNumber) => {
-    if (!draft?.items) {
-      return [];
-    }
+    if (!draft?.items) return [];
 
     return draft.items
-      .filter(
-        (item) => item.dayNumber === dayNumber
-      )
-      .sort(
-        (a, b) =>
-          a.activityOrder - b.activityOrder
-      );
+      .filter((item) => item.dayNumber === dayNumber)
+      .sort((a, b) => a.activityOrder - b.activityOrder);
   };
 
   const getDayNumbers = () => {
-    if (!draft?.items) {
-      return [];
-    }
+    if (!draft?.items) return [];
 
-    return [
-      ...new Set(
-        draft.items.map(
-          (item) => item.dayNumber
-        )
-      ),
-    ].sort((a, b) => a - b);
+    return [...new Set(draft.items.map((item) => item.dayNumber))].sort(
+      (a, b) => a - b
+    );
   };
 
-  const handleRemoveItem = (
-    dayNumber,
-    index
-  ) => {
+  const handleRemoveItem = (dayNumber, index) => {
     setDraft((current) => {
       const dayItems = current.items
-        .filter(
-          (item) =>
-            item.dayNumber === dayNumber
-        )
-        .sort(
-          (a, b) =>
-            a.activityOrder -
-            b.activityOrder
-        );
+        .filter((item) => item.dayNumber === dayNumber)
+        .sort((a, b) => a.activityOrder - b.activityOrder);
 
-      const itemToRemove =
-        dayItems[index];
+      const itemToRemove = dayItems[index];
 
-      const remainingDayItems =
-        dayItems.filter(
-          (item) =>
-            item !== itemToRemove
-        );
+      const remainingDayItems = dayItems.filter(
+        (item) => item !== itemToRemove
+      );
 
-      const updatedDayItems =
-        remainingDayItems.map(
-          (item, itemIndex) => ({
-            ...item,
-            activityOrder:
-              itemIndex + 1,
-          })
-        );
+      const updatedDayItems = remainingDayItems.map(
+        (item, itemIndex) => ({
+          ...item,
+          activityOrder: itemIndex + 1,
+        })
+      );
 
-      const updatedItems =
-        current.items
-          .filter(
-            (item) =>
-              item.dayNumber !== dayNumber
-          )
-          .concat(updatedDayItems);
+      const updatedItems = current.items
+        .filter((item) => item.dayNumber !== dayNumber)
+        .concat(updatedDayItems);
 
       return {
         ...current,
@@ -111,59 +80,34 @@ function Itinerary() {
     });
   };
 
-  const handleMoveItemUp = (
-    dayNumber,
-    index
-  ) => {
-    if (index === 0) {
-      return;
-    }
+  const handleMoveItemUp = (dayNumber, index) => {
+    if (index === 0) return;
 
     setDraft((current) => {
       const dayItems = current.items
-        .filter(
-          (item) =>
-            item.dayNumber === dayNumber
-        )
-        .sort(
-          (a, b) =>
-            a.activityOrder -
-            b.activityOrder
-        );
+        .filter((item) => item.dayNumber === dayNumber)
+        .sort((a, b) => a.activityOrder - b.activityOrder);
 
-      const currentItem =
-        dayItems[index];
+      const currentItem = dayItems[index];
+      const previousItem = dayItems[index - 1];
 
-      const previousItem =
-        dayItems[index - 1];
-
-      const updatedDayItems = [
-        ...dayItems,
-      ];
+      const updatedDayItems = [...dayItems];
 
       updatedDayItems[index - 1] = {
         ...currentItem,
-        activityOrder:
-          index,
-        time:
-          previousItem.time,
+        activityOrder: index,
+        time: previousItem.time,
       };
 
       updatedDayItems[index] = {
         ...previousItem,
-        activityOrder:
-          index + 1,
-        time:
-          currentItem.time,
+        activityOrder: index + 1,
+        time: currentItem.time,
       };
 
-      const updatedItems =
-        current.items
-          .filter(
-            (item) =>
-              item.dayNumber !== dayNumber
-          )
-          .concat(updatedDayItems);
+      const updatedItems = current.items
+        .filter((item) => item.dayNumber !== dayNumber)
+        .concat(updatedDayItems);
 
       return {
         ...current,
@@ -172,74 +116,102 @@ function Itinerary() {
     });
   };
 
-  const handleMoveItemDown = (
-    dayNumber,
-    index
-  ) => {
-    const dayItems =
-      getDayItems(dayNumber);
+  const handleMoveItemDown = (dayNumber, index) => {
+    const dayItems = getDayItems(dayNumber);
 
-    if (
-      index >=
-      dayItems.length - 1
-    ) {
-      return;
-    }
+    if (index >= dayItems.length - 1) return;
 
     setDraft((current) => {
-      const currentDayItems =
-        current.items
-          .filter(
-            (item) =>
-              item.dayNumber ===
-              dayNumber
-          )
-          .sort(
-            (a, b) =>
-              a.activityOrder -
-              b.activityOrder
-          );
+      const currentDayItems = current.items
+        .filter((item) => item.dayNumber === dayNumber)
+        .sort((a, b) => a.activityOrder - b.activityOrder);
 
-      const currentItem =
-        currentDayItems[index];
+      const currentItem = currentDayItems[index];
+      const nextItem = currentDayItems[index + 1];
 
-      const nextItem =
-        currentDayItems[index + 1];
-
-      const updatedDayItems = [
-        ...currentDayItems,
-      ];
+      const updatedDayItems = [...currentDayItems];
 
       updatedDayItems[index] = {
         ...nextItem,
-        activityOrder:
-          index + 1,
-        time:
-          currentItem.time,
+        activityOrder: index + 1,
+        time: currentItem.time,
       };
 
       updatedDayItems[index + 1] = {
         ...currentItem,
-        activityOrder:
-          index + 2,
-        time:
-          nextItem.time,
+        activityOrder: index + 2,
+        time: nextItem.time,
       };
 
-      const updatedItems =
-        current.items
-          .filter(
-            (item) =>
-              item.dayNumber !==
-              dayNumber
-          )
-          .concat(updatedDayItems);
+      const updatedItems = current.items
+        .filter((item) => item.dayNumber !== dayNumber)
+        .concat(updatedDayItems);
 
       return {
         ...current,
         items: updatedItems,
       };
     });
+  };
+
+  const handleAddActivity = (activity) => {
+    setDraft((current) => {
+      if (!current) return current;
+
+      const dayItems = current.items
+        .filter((item) => item.dayNumber === activity.dayNumber)
+        .sort((a, b) => a.activityOrder - b.activityOrder);
+
+      const newItem = {
+        ...activity,
+      };
+
+      /*
+       * Find the first existing activity whose time is later
+       * than the new activity's time.
+       *
+       * If none is found, the new activity goes at the end.
+       */
+      const insertIndex = dayItems.findIndex(
+        (item) => item.time > newItem.time
+      );
+
+      let updatedDayItems;
+
+      if (insertIndex === -1) {
+        updatedDayItems = [...dayItems, newItem];
+      } else {
+        updatedDayItems = [
+          ...dayItems.slice(0, insertIndex),
+          newItem,
+          ...dayItems.slice(insertIndex),
+        ];
+      }
+
+      /*
+       * Recalculate activityOrder after insertion.
+       */
+      updatedDayItems = updatedDayItems.map(
+        (item, index) => ({
+          ...item,
+          dayNumber: activity.dayNumber,
+          activityOrder: index + 1,
+        })
+      );
+
+      const updatedItems = current.items
+        .filter(
+          (item) => item.dayNumber !== activity.dayNumber
+        )
+        .concat(updatedDayItems);
+
+      return {
+        ...current,
+        items: updatedItems,
+      };
+    });
+
+    setShowAddActivity(false);
   };
 
   return (
@@ -276,8 +248,7 @@ function Itinerary() {
                   </p>
 
                   <p className="mt-1 font-medium text-gray-900">
-                    {draft.startDate} →{" "}
-                    {draft.endDate}
+                    {draft.startDate} → {draft.endDate}
                   </p>
                 </div>
 
@@ -304,36 +275,57 @@ function Itinerary() {
             </div>
 
             <div className="mt-8">
-              <h3 className="text-xl font-semibold text-gray-900">
-                Edit Your Itinerary
-              </h3>
+              <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                <div>
+                  <h3 className="text-xl font-semibold text-gray-900">
+                    Edit Your Itinerary
+                  </h3>
 
-              <p className="mt-2 text-sm text-gray-500">
-                This is a draft. Remove activities or
-                change their order before saving.
-              </p>
+                  <p className="mt-2 text-sm text-gray-500">
+                    This is a draft. Remove activities, add new
+                    ones, or change their order before saving.
+                  </p>
+                </div>
+
+                <Button
+                  type="button"
+                  onClick={() =>
+                    setShowAddActivity(
+                      (current) => !current
+                    )
+                  }
+                >
+                  {showAddActivity
+                    ? "Close Add Activity"
+                    : "Add Activity"}
+                </Button>
+              </div>
+
+              {showAddActivity && (
+                <div className="mt-6">
+                  <AddActivityForm
+                    destinationId={draft.destinationId}
+                    dayNumbers={getDayNumbers()}
+                    startDate={draft.startDate}
+                    onAdd={handleAddActivity}
+                    onCancel={() =>
+                      setShowAddActivity(false)
+                    }
+                  />
+                </div>
+              )}
 
               <div className="mt-6 space-y-6">
-                {getDayNumbers().map(
-                  (dayNumber) => (
-                    <ItineraryDay
-                      key={dayNumber}
-                      dayNumber={dayNumber}
-                      items={getDayItems(
-                        dayNumber
-                      )}
-                      onRemoveItem={
-                        handleRemoveItem
-                      }
-                      onMoveItemUp={
-                        handleMoveItemUp
-                      }
-                      onMoveItemDown={
-                        handleMoveItemDown
-                      }
-                    />
-                  )
-                )}
+                {getDayNumbers().map((dayNumber) => (
+                  <ItineraryDay
+                    key={dayNumber}
+                    dayNumber={dayNumber}
+                    items={getDayItems(dayNumber)}
+                    onRemoveItem={handleRemoveItem}
+                    onMoveItemUp={handleMoveItemUp}
+                    onMoveItemDown={handleMoveItemDown}
+                  />
+                ))}
               </div>
             </div>
           </div>
