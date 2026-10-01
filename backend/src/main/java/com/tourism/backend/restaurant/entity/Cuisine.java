@@ -4,6 +4,12 @@ public enum Cuisine {
 
     ASSAMESE,
     MEGHALAYAN,
+    JAINTIA,
+    KHASI,
+    GARO,
+    NAGA,
+    MANIPURI,
+    MIZO,
     NORTH_INDIAN,
     SOUTH_INDIAN,
     CHINESE,
