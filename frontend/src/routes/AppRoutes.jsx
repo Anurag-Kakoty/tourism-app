@@ -48,6 +48,7 @@ export default function AppRoutes() {
       <Route path="/transport" element={<Transport />} />
       <Route path="/transport/:id" element={<TransportDetails />} />
       <Route path="/itinerary" element={<Itinerary />} />
+      <Route path="/itinerary/:id/edit" element={<Itinerary />} />
       <Route path="/my-itineraries" element={<MyItineraries />} />
 
       <Route path="*" element={<NotFound />} />
