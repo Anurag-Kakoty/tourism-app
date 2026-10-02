@@ -15,6 +15,10 @@ import java.util.List;
 @Builder
 public class AiCandidateContext {
 
+    private Double destinationLatitude;
+
+    private Double destinationLongitude;
+
     private List<AttractionCandidate> attractions;
 
     private List<AccommodationCandidate> accommodations;
