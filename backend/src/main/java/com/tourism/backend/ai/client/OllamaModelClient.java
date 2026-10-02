@@ -16,6 +16,7 @@ import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -97,11 +98,25 @@ public class OllamaModelClient implements AiModelClient {
             RecommendedCandidateContext candidates) {
 
         try {
+            long numberOfDays =
+                    ChronoUnit.DAYS.between(
+                            request.getStartDate(),
+                            request.getEndDate()
+                    ) + 1;
+
+            List<Long> validDayNumbers =
+                    new ArrayList<>();
+
+            for (long day = 1; day <= numberOfDays; day++) {
+                validDayNumbers.add(day);
+            }
 
             Map<String, Object> promptData =
                     new LinkedHashMap<>();
 
             promptData.put("request", request);
+            promptData.put("numberOfDays", numberOfDays);
+            promptData.put("validDayNumbers", validDayNumbers);
             promptData.put("candidates", candidates);
 
             String candidateJson =
@@ -125,27 +140,44 @@ public class OllamaModelClient implements AiModelClient {
 
                     5. Respect the requested start date and end date.
 
-                    6. The itinerary should contain sensible activities distributed across
-                       the requested number of days.
+                    6. The trip contains exactly %d days.
 
-                    7. Consider the requested budget when selecting activities,
-                       accommodation, restaurants, guides, and transport.
+                    7. dayNumber MUST be one of these values ONLY:
+                       %s
 
-                    8. Use festival information when a relevant festival is available.
+                    8. NEVER use a dayNumber outside the allowed values.
 
-                    9. Avoid unnecessary repetition of the same attraction.
+                    9. Every itinerary item must belong to one of the valid trip days.
 
-                    10. Times must ALWAYS use 24-hour HH:mm:ss format.
+                    10. Distribute activities sensibly across the requested days.
+
+                    11. Consider the requested budget when selecting activities,
+                        accommodation, restaurants, guides, and transport.
+
+                    12. Use festival information when a relevant festival is available.
+
+                    13. Avoid unnecessary repetition of the same attraction.
+
+                    14. Times must ALWAYS use 24-hour HH:mm:ss format.
                         Do not use AM/PM.
 
-                    11. Return ONLY valid JSON matching the supplied schema.
+                    15. Keep notes short and practical.
+                        Do not write long explanations or travel essays.
+
+                    16. Generate only the information required by the schema.
+
+                    17. Return ONLY valid JSON matching the supplied schema.
                         Do not include Markdown.
                         Do not include explanations outside the JSON.
 
                     USER REQUEST AND AVAILABLE CANDIDATES:
 
                     %s
-                    """.formatted(candidateJson);
+                    """.formatted(
+                    numberOfDays,
+                    validDayNumbers,
+                    candidateJson
+            );
 
         } catch (Exception exception) {
 
@@ -438,6 +470,7 @@ public class OllamaModelClient implements AiModelClient {
                         value.trim(),
                         formatter
                 );
+
             } catch (DateTimeParseException ignored) {
                 // Try the next supported format.
             }
