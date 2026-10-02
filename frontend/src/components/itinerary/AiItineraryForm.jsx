@@ -11,7 +11,6 @@ const initialForm = {
   budget: "",
   destinationId: "",
   experienceIds: [],
-  festivalId: "",
 };
 
 function AiItineraryForm({ onGenerate, loading }) {
@@ -36,9 +35,7 @@ function AiItineraryForm({ onGenerate, loading }) {
       budget: Number(form.budget),
       destinationId: Number(form.destinationId),
       experienceIds: form.experienceIds,
-      festivalId: form.festivalId
-        ? Number(form.festivalId)
-        : null,
+      festivalId: null,
     };
 
     await onGenerate(request);
@@ -189,47 +186,6 @@ function AiItineraryForm({ onGenerate, loading }) {
 
                 <option value="6">
                   Kaziranga
-                </option>
-              </select>
-            </div>
-
-            <div>
-              <label
-                htmlFor="festivalId"
-                className="mb-2 block text-sm font-medium text-gray-700"
-              >
-                Festival (Optional)
-              </label>
-
-              <select
-                id="festivalId"
-                name="festivalId"
-                value={form.festivalId}
-                onChange={handleChange}
-                className="w-full rounded-xl border border-gray-300 bg-white px-4 py-3 outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20"
-              >
-                <option value="">
-                  No specific festival
-                </option>
-
-                <option value="1">
-                  Wangala Festival
-                </option>
-
-                <option value="2">
-                  Nongkrem Dance Festival
-                </option>
-
-                <option value="3">
-                  Shad Suk Mynsiem
-                </option>
-
-                <option value="4">
-                  Rongali Bihu
-                </option>
-
-                <option value="5">
-                  Ambubachi Mela
                 </option>
               </select>
             </div>
