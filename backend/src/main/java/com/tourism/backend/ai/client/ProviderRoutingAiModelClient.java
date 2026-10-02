@@ -7,6 +7,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Component;
+import org.springframework.web.client.HttpStatusCodeException;
+import org.springframework.web.client.ResourceAccessException;
 
 @Component
 @Primary
@@ -61,17 +63,39 @@ public class ProviderRoutingAiModelClient
         } catch (RuntimeException exception) {
 
             if (!isTemporaryProviderFailure(exception)) {
+
+                log.error(
+                        "Gemini itinerary generation failed and is not considered temporary.",
+                        exception
+                );
+
                 throw exception;
             }
 
             log.warn(
-                    "Gemini temporarily unavailable. Falling back to Ollama."
+                    "Gemini temporarily unavailable. Falling back to Ollama.",
+                    exception
             );
 
-            return ollamaModelClient.generateItinerary(
-                    request,
-                    candidates
-            );
+            try {
+
+                return ollamaModelClient.generateItinerary(
+                        request,
+                        candidates
+                );
+
+            } catch (RuntimeException ollamaException) {
+
+                log.error(
+                        "Ollama fallback also failed.",
+                        ollamaException
+                );
+
+                throw new IllegalStateException(
+                        "Both Gemini and Ollama itinerary generation failed.",
+                        ollamaException
+                );
+            }
         }
     }
 
@@ -82,7 +106,44 @@ public class ProviderRoutingAiModelClient
 
         while (current != null) {
 
-            String message = current.getMessage();
+            /*
+             * Spring's HTTP exception gives us the actual
+             * HTTP status instead of forcing us to inspect
+             * the exception message.
+             */
+            if (current instanceof HttpStatusCodeException httpException) {
+
+                int status =
+                        httpException
+                                .getStatusCode()
+                                .value();
+
+                if (status == 429
+                        || status == 500
+                        || status == 502
+                        || status == 503
+                        || status == 504) {
+
+                    return true;
+                }
+            }
+
+            /*
+             * Network-level failures are also appropriate
+             * candidates for provider fallback.
+             */
+            if (current instanceof ResourceAccessException) {
+
+                return true;
+            }
+
+            /*
+             * Keep message-based detection as a secondary
+             * fallback because GeminiModelClient currently
+             * wraps the original exception.
+             */
+            String message =
+                    current.getMessage();
 
             if (message != null) {
 
@@ -97,17 +158,24 @@ public class ProviderRoutingAiModelClient
                         || normalizedMessage.contains(
                         "high demand")
                         || normalizedMessage.contains(
+                        "too many requests")
+                        || normalizedMessage.contains(
+                        "rate limit")
+                        || normalizedMessage.contains(
                         "connection refused")
                         || normalizedMessage.contains(
                         "connect timed out")
                         || normalizedMessage.contains(
-                        "read timed out")) {
+                        "read timed out")
+                        || normalizedMessage.contains(
+                        "socket timeout")) {
 
                     return true;
                 }
             }
 
-            current = current.getCause();
+            current =
+                    current.getCause();
         }
 
         return false;
