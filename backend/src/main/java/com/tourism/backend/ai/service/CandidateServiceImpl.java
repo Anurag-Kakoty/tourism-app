@@ -50,7 +50,16 @@ public class CandidateServiceImpl implements CandidateService {
 
     @Override
     public AiCandidateContext getCandidates(AiItineraryRequest request) {
+
+        Destination destination =
+                destinationRepository.findById(request.getDestinationId())
+                        .orElseThrow(() -> new ResourceNotFoundException(
+                                "Destination not found."
+                        ));
+
         return AiCandidateContext.builder()
+                .destinationLatitude(destination.getLatitude())
+                .destinationLongitude(destination.getLongitude())
                 .attractions(getAttractions(request))
                 .accommodations(getAccommodations(request))
                 .restaurants(getRestaurants(request))
@@ -210,6 +219,8 @@ public class CandidateServiceImpl implements CandidateService {
                 .bestSeason(attraction.getBestSeason())
                 .entryFee(attraction.getEntryFee())
                 .featured(attraction.getFeatured())
+                .latitude(attraction.getLatitude())
+                .longitude(attraction.getLongitude())
                 .experienceIds(
                         attraction.getExperiences()
                                 .stream()
