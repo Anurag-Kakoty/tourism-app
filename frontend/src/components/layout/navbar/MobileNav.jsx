@@ -1,6 +1,7 @@
 import { NavLink } from "react-router-dom";
 import {
   HiOutlineUserCircle,
+  HiOutlineMap,
 } from "react-icons/hi2";
 
 import Button from "../../common/inputs/Button";
@@ -28,7 +29,6 @@ export default function MobileNav({
       `}
     >
       <nav className="flex flex-col p-6">
-
         {navigation.map((item) => (
           <NavLink
             key={item.path}
@@ -73,11 +73,39 @@ export default function MobileNav({
               </div>
             </div>
 
+            <NavLink
+              to="/my-itineraries"
+              onClick={onClose}
+              className="
+                mt-3
+                flex
+                w-full
+                items-center
+                gap-3
+                rounded-lg
+                border
+                border-slate-200
+                px-4
+                py-3
+                text-sm
+                font-medium
+                text-slate-700
+                transition-colors
+                hover:bg-slate-100
+              "
+            >
+              <HiOutlineMap size={20} />
+
+              <span>
+                My Itineraries
+              </span>
+            </NavLink>
+
             <button
               type="button"
               onClick={onLogout}
               className="
-                mt-3
+                mt-2
                 w-full
                 rounded-lg
                 border
@@ -104,7 +132,6 @@ export default function MobileNav({
             Login
           </Button>
         )}
-
       </nav>
     </div>
   );

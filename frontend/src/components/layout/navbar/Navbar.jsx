@@ -4,6 +4,7 @@ import {
   HiOutlineXMark,
   HiOutlineUserCircle,
 } from "react-icons/hi2";
+import { HiOutlineMap } from "react-icons/hi2";
 
 import Logo from "./Logo";
 import DesktopNav from "./DesktopNav";
@@ -28,7 +29,8 @@ export default function Navbar() {
 
     window.addEventListener("scroll", handleScroll);
 
-    return () => window.removeEventListener("scroll", handleScroll);
+    return () =>
+      window.removeEventListener("scroll", handleScroll);
   }, []);
 
   useEffect(() => {
@@ -39,7 +41,11 @@ export default function Navbar() {
 
     window.addEventListener("authChange", handleAuthChange);
 
-    return () => window.removeEventListener("authChange", handleAuthChange);
+    return () =>
+      window.removeEventListener(
+        "authChange",
+        handleAuthChange
+      );
   }, []);
 
   useEffect(() => {
@@ -52,11 +58,16 @@ export default function Navbar() {
       }
     };
 
-    document.addEventListener("mousedown", handleClickOutside);
+    document.addEventListener(
+      "mousedown",
+      handleClickOutside
+    );
 
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
+    return () =>
+      document.removeEventListener(
+        "mousedown",
+        handleClickOutside
+      );
   }, []);
 
   const handleLogout = () => {
@@ -87,10 +98,15 @@ export default function Navbar() {
           </Button>
 
           {user ? (
-            <div className="relative" ref={accountRef}>
+            <div
+              className="relative"
+              ref={accountRef}
+            >
               <button
                 type="button"
-                onClick={() => setAccountOpen(!accountOpen)}
+                onClick={() =>
+                  setAccountOpen((current) => !current)
+                }
                 className="
                   flex
                   items-center
@@ -137,8 +153,39 @@ export default function Navbar() {
                   <div className="p-2">
                     <button
                       type="button"
+                      onClick={() => {
+                        setAccountOpen(false);
+                        window.location.href =
+                          "/my-itineraries";
+                      }}
+                      className="
+                        flex
+                        w-full
+                        items-center
+                        gap-3
+                        rounded-lg
+                        px-3
+                        py-2.5
+                        text-left
+                        text-sm
+                        font-medium
+                        text-slate-700
+                        transition-colors
+                        hover:bg-slate-100
+                      "
+                    >
+                      <HiOutlineMap size={20} />
+
+                      <span>
+                        My Itineraries
+                      </span>
+                    </button>
+
+                    <button
+                      type="button"
                       onClick={handleLogout}
                       className="
+                        mt-1
                         w-full
                         rounded-lg
                         px-3
@@ -168,9 +215,11 @@ export default function Navbar() {
         </div>
 
         <button
-          onClick={() => setIsOpen(!isOpen)}
+          onClick={() => setIsOpen((current) => !current)}
           className="rounded-lg p-2 transition-colors hover:bg-slate-100 lg:hidden"
-          aria-label={isOpen ? "Close menu" : "Open menu"}
+          aria-label={
+            isOpen ? "Close menu" : "Open menu"
+          }
         >
           {isOpen ? (
             <HiOutlineXMark size={28} />
