@@ -55,6 +55,30 @@ const deleteItinerary = async (id) => {
   );
 };
 
+const updateItineraryItem = async (
+  itineraryId,
+  itemId,
+  request
+) => {
+  const response = await api.put(
+    `/itineraries/${itineraryId}/items/${itemId}`,
+    request
+  );
+
+  return response.data;
+};
+
+const deleteItineraryItem = async (
+  itineraryId,
+  itemId
+) => {
+  const response = await api.delete(
+    `/itineraries/${itineraryId}/items/${itemId}`
+  );
+
+  return response.data;
+};
+
 export default {
   createItinerary,
   addItineraryItem,
@@ -62,4 +86,6 @@ export default {
   getAllItineraries,
   updateItinerary,
   deleteItinerary,
+  updateItineraryItem,
+  deleteItineraryItem,
 };

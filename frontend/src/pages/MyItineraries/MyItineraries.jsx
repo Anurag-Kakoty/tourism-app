@@ -1,10 +1,16 @@
 import { useEffect, useState } from "react";
-import { HiOutlineChevronDown, HiOutlineChevronUp } from "react-icons/hi2";
+import {
+  HiOutlineChevronDown,
+  HiOutlineChevronUp,
+} from "react-icons/hi2";
+import { useNavigate } from "react-router-dom";
 
 import Button from "../../components/common/inputs/Button";
 import itineraryService from "../../services/itineraryService";
 
 function MyItineraries() {
+  const navigate = useNavigate();
+
   const [itineraries, setItineraries] = useState([]);
   const [expandedId, setExpandedId] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -46,6 +52,10 @@ function MyItineraries() {
     setExpandedId((current) =>
       current === id ? null : id
     );
+  };
+
+  const handleEdit = (id) => {
+    navigate(`/itinerary/${id}/edit`);
   };
 
   const handleDelete = async (id) => {
@@ -100,7 +110,9 @@ function MyItineraries() {
     );
   };
 
-  const getActivityTypeLabel = (activityType) => {
+  const getActivityTypeLabel = (
+    activityType
+  ) => {
     if (!activityType) return "Activity";
 
     return activityType
@@ -178,6 +190,7 @@ function MyItineraries() {
                 key={itinerary.id}
                 className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm"
               >
+                {/* Compact itinerary header */}
                 <button
                   type="button"
                   onClick={() =>
@@ -211,7 +224,9 @@ function MyItineraries() {
 
                       <div className="mt-3 flex flex-wrap gap-x-5 gap-y-1 text-sm text-gray-600">
                         <span>
-                          {itinerary.numberOfTravelers}{" "}
+                          {
+                            itinerary.numberOfTravelers
+                          }{" "}
                           traveler
                           {itinerary.numberOfTravelers !==
                           1
@@ -223,7 +238,9 @@ function MyItineraries() {
                           ₹
                           {Number(
                             itinerary.estimatedBudget
-                          ).toLocaleString("en-IN")}
+                          ).toLocaleString(
+                            "en-IN"
+                          )}
                         </span>
                       </div>
                     </div>
@@ -242,6 +259,7 @@ function MyItineraries() {
                   </div>
                 </button>
 
+                {/* Expanded itinerary */}
                 {isExpanded && (
                   <div className="border-t border-gray-200 px-5 pb-6 pt-5 sm:px-6">
                     {itinerary.description && (
@@ -251,13 +269,19 @@ function MyItineraries() {
                     )}
 
                     <div className="space-y-6">
-                      {itinerary.items?.length > 0 ? (
+                      {itinerary.items?.length >
+                      0 ? (
                         Object.entries(
                           itinerary.items.reduce(
                             (days, item) => {
-                              if (!days[item.dayNumber]) {
-                                days[item.dayNumber] =
-                                  [];
+                              if (
+                                !days[
+                                  item.dayNumber
+                                ]
+                              ) {
+                                days[
+                                  item.dayNumber
+                                ] = [];
                               }
 
                               days[
@@ -331,13 +355,27 @@ function MyItineraries() {
                         )
                       ) : (
                         <p className="text-sm text-gray-500">
-                          No activities have been added
-                          to this itinerary.
+                          No activities have been
+                          added to this itinerary.
                         </p>
                       )}
                     </div>
 
+                    {/* Actions */}
                     <div className="mt-6 flex flex-col gap-3 border-t border-gray-200 pt-5 sm:flex-row sm:justify-end">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={(event) => {
+                          event.stopPropagation();
+                          handleEdit(
+                            itinerary.id
+                          );
+                        }}
+                      >
+                        Edit
+                      </Button>
+
                       <Button
                         type="button"
                         variant="outline"

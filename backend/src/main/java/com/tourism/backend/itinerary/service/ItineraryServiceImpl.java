@@ -286,11 +286,23 @@ public class ItineraryServiceImpl implements ItineraryService {
                     "Item does not belong to itinerary.");
         }
 
-        itineraryItemRepository.delete(item);
+        /*
+         * Remove the item from the parent's collection.
+         *
+         * Itinerary uses:
+         *
+         * cascade = CascadeType.ALL
+         * orphanRemoval = true
+         *
+         * Therefore Hibernate will delete this
+         * itinerary_items row from the database.
+         */
+        itinerary.getItems().remove(item);
 
         log.info(
-                "Item {} deleted by user {}",
+                "Item {} deleted from itinerary {} by user {}",
                 itemId,
+                itineraryId,
                 currentUser.getId());
 
         return buildResponse(itinerary);

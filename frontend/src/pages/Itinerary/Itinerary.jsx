@@ -1,14 +1,22 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useNavigate, useParams } from "react-router-dom";
 
 import Button from "../../components/common/inputs/Button";
 import AddActivityForm from "../../components/itinerary/AddActivityForm";
 import AiItineraryForm from "../../components/itinerary/AiItineraryForm";
 import ItineraryDay from "../../components/itinerary/ItineraryDay";
+
 import aiItineraryService from "../../services/aiItineraryService";
 import itineraryService from "../../services/itineraryService";
 
 function Itinerary() {
+  const { id } = useParams();
+  const navigate = useNavigate();
+
+  const isEditMode = Boolean(id);
+
   const [loading, setLoading] = useState(false);
+  const [pageLoading, setPageLoading] = useState(isEditMode);
   const [saving, setSaving] = useState(false);
 
   const [draft, setDraft] = useState(null);
@@ -19,6 +27,63 @@ function Itinerary() {
   const [showAddActivity, setShowAddActivity] =
     useState(false);
 
+  /*
+   * IDs of the itinerary items that existed when
+   * edit mode was opened.
+   *
+   * We use this to determine which activities were
+   * removed by the user.
+   */
+  const [originalItemIds, setOriginalItemIds] =
+    useState([]);
+
+  /*
+   * Load an existing itinerary when this page is opened
+   * through /itinerary/:id/edit.
+   */
+  useEffect(() => {
+    if (!isEditMode) {
+      setPageLoading(false);
+      return;
+    }
+
+    const loadItinerary = async () => {
+      setPageLoading(true);
+      setError("");
+      setSaveMessage("");
+
+      try {
+        const savedItinerary =
+          await itineraryService.getItineraryById(id);
+
+        setDraft(savedItinerary);
+
+        setOriginalItemIds(
+          (savedItinerary.items || [])
+            .filter((item) => item.id)
+            .map((item) => item.id)
+        );
+      } catch (err) {
+        console.error(
+          "Failed to load itinerary:",
+          err
+        );
+
+        setError(
+          err.response?.data?.message ||
+            "Failed to load the itinerary. Please try again."
+        );
+      } finally {
+        setPageLoading(false);
+      }
+    };
+
+    loadItinerary();
+  }, [id, isEditMode]);
+
+  /*
+   * Generate a completely new AI itinerary.
+   */
   const handleGenerate = async (request) => {
     setLoading(true);
     setError("");
@@ -27,9 +92,13 @@ function Itinerary() {
 
     try {
       const generatedItinerary =
-        await aiItineraryService.generateAiItinerary(request);
+        await aiItineraryService.generateAiItinerary(
+          request
+        );
 
       setDraft(generatedItinerary);
+
+      setOriginalItemIds([]);
     } catch (err) {
       console.error(
         "Failed to generate AI itinerary:",
@@ -45,7 +114,16 @@ function Itinerary() {
     }
   };
 
-  const handleSaveItinerary = async () => {
+  /*
+   * Save a completely new itinerary.
+   *
+   * This is the original save flow:
+   *
+   * 1. Create itinerary
+   * 2. Add each activity
+   * 3. Retrieve the saved itinerary
+   */
+  const handleCreateItinerary = async () => {
     if (!draft || saving) return;
 
     setSaving(true);
@@ -53,17 +131,15 @@ function Itinerary() {
     setSaveMessage("");
 
     try {
-      /*
-       * Step 1:
-       * Create the itinerary itself.
-       */
       const itineraryRequest = {
         title: draft.title,
         description: draft.description,
         startDate: draft.startDate,
         endDate: draft.endDate,
         numberOfTravelers: draft.numberOfTravelers,
-        estimatedBudget: Number(draft.estimatedBudget),
+        estimatedBudget: Number(
+          draft.estimatedBudget
+        ),
         destinationId: draft.destinationId,
       };
 
@@ -72,10 +148,6 @@ function Itinerary() {
           itineraryRequest
         );
 
-      /*
-       * The backend should return the newly-created
-       * itinerary ID.
-       */
       const itineraryId = createdItinerary.id;
 
       if (!itineraryId) {
@@ -84,20 +156,17 @@ function Itinerary() {
         );
       }
 
-      /*
-       * Step 2:
-       * Add each edited draft activity to the
-       * newly-created itinerary.
-       */
-      const sortedItems = [...(draft.items || [])].sort(
-        (a, b) => {
-          if (a.dayNumber !== b.dayNumber) {
-            return a.dayNumber - b.dayNumber;
-          }
-
-          return a.activityOrder - b.activityOrder;
+      const sortedItems = [
+        ...(draft.items || []),
+      ].sort((a, b) => {
+        if (a.dayNumber !== b.dayNumber) {
+          return a.dayNumber - b.dayNumber;
         }
-      );
+
+        return (
+          a.activityOrder - b.activityOrder
+        );
+      });
 
       for (const item of sortedItems) {
         const itemRequest = {
@@ -115,11 +184,6 @@ function Itinerary() {
         );
       }
 
-      /*
-       * Step 3:
-       * Retrieve the final saved itinerary so that
-       * the frontend has the actual persisted data.
-       */
       const savedItinerary =
         await itineraryService.getItineraryById(
           itineraryId
@@ -146,12 +210,177 @@ function Itinerary() {
     }
   };
 
+  /*
+   * Update an existing saved itinerary.
+   *
+   * 1. Update itinerary details
+   * 2. Delete activities removed from the draft
+   * 3. Update existing activities
+   * 4. Add newly-created activities
+   * 5. Retrieve the final persisted itinerary
+   */
+  const handleUpdateItinerary = async () => {
+    if (!draft || saving || !id) return;
+
+    setSaving(true);
+    setError("");
+    setSaveMessage("");
+
+    try {
+      const itineraryRequest = {
+        title: draft.title,
+        description: draft.description,
+        startDate: draft.startDate,
+        endDate: draft.endDate,
+        numberOfTravelers: draft.numberOfTravelers,
+        estimatedBudget: Number(
+          draft.estimatedBudget
+        ),
+        destinationId: draft.destinationId,
+      };
+
+      await itineraryService.updateItinerary(
+        id,
+        itineraryRequest
+      );
+
+      const currentItems = [
+        ...(draft.items || []),
+      ];
+
+      /*
+       * Determine which original activities have
+       * been removed.
+       */
+      const currentItemIds = currentItems
+        .filter((item) => item.id)
+        .map((item) => item.id);
+
+      const removedItemIds =
+        originalItemIds.filter(
+          (originalItemId) =>
+            !currentItemIds.includes(
+              originalItemId
+            )
+        );
+
+      /*
+       * Delete removed activities.
+       */
+      for (const itemId of removedItemIds) {
+        await itineraryService.deleteItineraryItem(
+          id,
+          itemId
+        );
+      }
+
+      /*
+       * Sort activities before persisting them.
+       */
+      const sortedItems = [...currentItems].sort(
+        (a, b) => {
+          if (a.dayNumber !== b.dayNumber) {
+            return a.dayNumber - b.dayNumber;
+          }
+
+          return (
+            a.activityOrder - b.activityOrder
+          );
+        }
+      );
+
+      /*
+       * Update existing activities and add new ones.
+       */
+      for (const item of sortedItems) {
+        const itemRequest = {
+          dayNumber: item.dayNumber,
+          activityOrder: item.activityOrder,
+          time: item.time,
+          activityType: item.activityType,
+          referenceId: item.referenceId,
+          notes: item.notes || null,
+        };
+
+        if (item.id) {
+          await itineraryService.updateItineraryItem(
+            id,
+            item.id,
+            itemRequest
+          );
+        } else {
+          await itineraryService.addItineraryItem(
+            id,
+            itemRequest
+          );
+        }
+      }
+
+      /*
+       * Retrieve the final persisted version.
+       */
+      const updatedItinerary =
+        await itineraryService.getItineraryById(
+          id
+        );
+
+      setDraft(updatedItinerary);
+
+      setOriginalItemIds(
+        (updatedItinerary.items || [])
+          .filter((item) => item.id)
+          .map((item) => item.id)
+      );
+
+      setSaveMessage(
+        "Itinerary updated successfully."
+      );
+
+      setShowAddActivity(false);
+
+      /*
+       * Return to My Itineraries after a short delay
+       * so the success message can be seen.
+       */
+      setTimeout(() => {
+        navigate("/my-itineraries");
+      }, 700);
+    } catch (err) {
+      console.error(
+        "Failed to update itinerary:",
+        err
+      );
+
+      setError(
+        err.response?.data?.message ||
+          err.message ||
+          "Failed to update the itinerary. Please try again."
+      );
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  /*
+   * Decide whether the Save button should create
+   * or update an itinerary.
+   */
+  const handleSaveItinerary = async () => {
+    if (isEditMode) {
+      await handleUpdateItinerary();
+      return;
+    }
+
+    await handleCreateItinerary();
+  };
+
   const getDayItems = (dayNumber) => {
     if (!draft?.items) return [];
 
     return draft.items
       .filter(
-        (item) => item.dayNumber === dayNumber
+        (item) =>
+          item.dayNumber === dayNumber
       )
       .sort(
         (a, b) =>
@@ -176,6 +405,8 @@ function Itinerary() {
     index
   ) => {
     setDraft((current) => {
+      if (!current) return current;
+
       const dayItems = current.items
         .filter(
           (item) =>
@@ -189,6 +420,10 @@ function Itinerary() {
 
       const itemToRemove =
         dayItems[index];
+
+      if (!itemToRemove) {
+        return current;
+      }
 
       const remainingDayItems =
         dayItems.filter(
@@ -229,6 +464,8 @@ function Itinerary() {
     if (index === 0) return;
 
     setDraft((current) => {
+      if (!current) return current;
+
       const dayItems = current.items
         .filter(
           (item) =>
@@ -287,19 +524,19 @@ function Itinerary() {
       getDayItems(dayNumber);
 
     if (
-      index >=
-      dayItems.length - 1
+      index >= dayItems.length - 1
     ) {
       return;
     }
 
     setDraft((current) => {
+      if (!current) return current;
+
       const currentDayItems =
         current.items
           .filter(
             (item) =>
-              item.dayNumber ===
-              dayNumber
+              item.dayNumber === dayNumber
           )
           .sort(
             (a, b) =>
@@ -371,8 +608,7 @@ function Itinerary() {
       const insertIndex =
         dayItems.findIndex(
           (item) =>
-            item.time >
-            newItem.time
+            item.time > newItem.time
         );
 
       let updatedDayItems;
@@ -425,12 +661,32 @@ function Itinerary() {
     setSaveMessage("");
   };
 
+  /*
+   * Prevent the editor from rendering before an
+   * existing itinerary has been loaded.
+   */
+  if (pageLoading) {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <div className="mx-auto max-w-4xl px-4 py-12">
+          <div className="rounded-2xl border border-gray-200 bg-white p-8 text-center shadow-sm">
+            <p className="text-gray-600">
+              Loading itinerary...
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gray-50">
-      <AiItineraryForm
-        onGenerate={handleGenerate}
-        loading={loading}
-      />
+      {!isEditMode && (
+        <AiItineraryForm
+          onGenerate={handleGenerate}
+          loading={loading}
+        />
+      )}
 
       {error && (
         <div className="mx-auto max-w-3xl px-4 pb-8">
@@ -452,13 +708,32 @@ function Itinerary() {
         <div className="mx-auto max-w-4xl px-4 pb-12">
           <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
             <div className="border-b border-gray-200 pb-6">
-              <h2 className="text-2xl font-bold text-gray-900">
-                {draft.title}
-              </h2>
+              <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+                <div>
+                  <h2 className="text-2xl font-bold text-gray-900">
+                    {draft.title}
+                  </h2>
 
-              <p className="mt-2 text-gray-600">
-                {draft.description}
-              </p>
+                  <p className="mt-2 text-gray-600">
+                    {draft.description}
+                  </p>
+                </div>
+
+                {isEditMode && (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() =>
+                      navigate(
+                        "/my-itineraries"
+                      )
+                    }
+                    disabled={saving}
+                  >
+                    Back to My Itineraries
+                  </Button>
+                )}
+              </div>
 
               <div className="mt-6 grid gap-4 sm:grid-cols-3">
                 <div className="rounded-xl bg-gray-50 p-4">
@@ -498,13 +773,15 @@ function Itinerary() {
               <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                 <div>
                   <h3 className="text-xl font-semibold text-gray-900">
-                    Edit Your Itinerary
+                    {isEditMode
+                      ? "Edit Your Itinerary"
+                      : "Edit Your Itinerary"}
                   </h3>
 
                   <p className="mt-2 text-sm text-gray-500">
-                    This is a draft. Remove activities,
-                    add new ones, or change their order
-                    before saving.
+                    {isEditMode
+                      ? "Modify your saved itinerary, then update it when you are finished."
+                      : "This is a draft. Remove activities, add new ones, or change their order before saving."}
                   </p>
                 </div>
 
@@ -532,7 +809,11 @@ function Itinerary() {
                     disabled={saving}
                   >
                     {saving
-                      ? "Saving Itinerary..."
+                      ? isEditMode
+                        ? "Updating Itinerary..."
+                        : "Saving Itinerary..."
+                      : isEditMode
+                      ? "Update Itinerary"
                       : "Save Itinerary"}
                   </Button>
                 </div>
