@@ -22,6 +22,7 @@ import States from "../pages/States/States";
 import StateDetails from "../pages/States/StateDetails";
 import Destinations from "../pages/Destinations/Destinations";
 import DestinationDetails from "../pages/Destinations/DestinationDetails";
+import MyItineraries from "../pages/MyItineraries/MyItineraries";
 
 export default function AppRoutes() {
   return (
@@ -47,6 +48,7 @@ export default function AppRoutes() {
       <Route path="/transport" element={<Transport />} />
       <Route path="/transport/:id" element={<TransportDetails />} />
       <Route path="/itinerary" element={<Itinerary />} />
+      <Route path="/my-itineraries" element={<MyItineraries />} />
 
       <Route path="*" element={<NotFound />} />
     </Routes>
