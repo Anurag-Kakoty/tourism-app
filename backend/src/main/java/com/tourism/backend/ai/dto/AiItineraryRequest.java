@@ -1,5 +1,6 @@
 package com.tourism.backend.ai.dto;
 
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.FutureOrPresent;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
@@ -37,4 +38,7 @@ public class AiItineraryRequest {
     private List<Long> experienceIds;
 
     private Long festivalId;
+
+    @Valid
+    private TripPreferences preferences;
 }
