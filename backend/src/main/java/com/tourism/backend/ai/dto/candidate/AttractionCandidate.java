@@ -22,6 +22,10 @@ public class AttractionCandidate {
 
     private Boolean featured;
 
+    private Double latitude;
+
+    private Double longitude;
+
     private List<Long> experienceIds;
 
     private List<String> experiences;
