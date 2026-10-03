@@ -16,12 +16,14 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
 @Service
 @RequiredArgsConstructor
 @Slf4j
+@Transactional
 public class DestinationServiceImpl implements DestinationService {
 
     private final DestinationRepository destinationRepository;
@@ -106,6 +108,7 @@ public class DestinationServiceImpl implements DestinationService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public DestinationResponse getById(Long id) {
 
         return mapper.toResponse(
@@ -114,6 +117,7 @@ public class DestinationServiceImpl implements DestinationService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<DestinationResponse> getAll(
             Long stateId,
             DestinationType type,
@@ -166,6 +170,7 @@ public class DestinationServiceImpl implements DestinationService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<DestinationResponse> getByState(
             Long stateId) {
 
@@ -178,6 +183,7 @@ public class DestinationServiceImpl implements DestinationService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<DestinationResponse> getByType(
             DestinationType type) {
 
@@ -190,6 +196,7 @@ public class DestinationServiceImpl implements DestinationService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<DestinationResponse> getFeatured() {
 
         return getAll(
@@ -201,6 +208,7 @@ public class DestinationServiceImpl implements DestinationService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<DestinationResponse> getPopular() {
 
         return getAll(
