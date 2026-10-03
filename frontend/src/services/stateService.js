@@ -11,6 +11,28 @@ const stateService = {
     const response = await api.get(`${API.STATES}/${id}`);
     return response.data;
   },
+
+  async create(stateData) {
+    const response = await api.post(
+      API.STATES,
+      stateData
+    );
+
+    return response.data;
+  },
+
+  async update(id, stateData) {
+    const response = await api.put(
+      `${API.STATES}/${id}`,
+      stateData
+    );
+
+    return response.data;
+  },
+
+  async delete(id) {
+    await api.delete(`${API.STATES}/${id}`);
+  },
 };
 
 export default stateService;
