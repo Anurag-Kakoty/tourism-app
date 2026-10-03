@@ -23,37 +23,84 @@ import StateDetails from "../pages/States/StateDetails";
 import Destinations from "../pages/Destinations/Destinations";
 import DestinationDetails from "../pages/Destinations/DestinationDetails";
 import MyItineraries from "../pages/MyItineraries/MyItineraries";
+
 import AdminDashboard from "../pages/Admin/AdminDashboard";
 import StatesAdmin from "../pages/Admin/StatesAdmin";
+
+import AdminRoute from "./AdminRoute";
 
 export default function AppRoutes() {
   return (
     <Routes>
       <Route path="/" element={<Home />} />
+
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
+
       <Route path="/places" element={<Places />} />
       <Route path="/places/:id" element={<PlaceDetails />} />
-      <Route path="/states" element={<States />}/>
-      <Route path="/states/:id" element={<StateDetails />}/>
-      <Route path="/destinations" element={<Destinations />}/>
-      <Route path="/destinations/:id" element={<DestinationDetails />}/>
+
+      <Route path="/states" element={<States />} />
+      <Route path="/states/:id" element={<StateDetails />} />
+
+      <Route path="/destinations" element={<Destinations />} />
+      <Route
+        path="/destinations/:id"
+        element={<DestinationDetails />}
+      />
+
       <Route path="/experiences" element={<Experiences />} />
-      <Route path="/experiences/:id" element={<ExperienceDetails />}/>
+      <Route
+        path="/experiences/:id"
+        element={<ExperienceDetails />}
+      />
+
       <Route path="/festivals" element={<Festivals />} />
-      <Route path="/festivals/:id" element={<FestivalDetails />}/>
-      <Route path="/festival-calendar" element={<FestivalCalendar />}/>
+      <Route
+        path="/festivals/:id"
+        element={<FestivalDetails />}
+      />
+
+      <Route
+        path="/festival-calendar"
+        element={<FestivalCalendar />}
+      />
+
       <Route path="/stay" element={<Stay />} />
-      <Route path="/stay/:id" element={<StayDetails />}/>
+      <Route path="/stay/:id" element={<StayDetails />} />
+
       <Route path="/guides" element={<Guides />} />
       <Route path="/guides/:id" element={<GuideDetails />} />
+
       <Route path="/transport" element={<Transport />} />
-      <Route path="/transport/:id" element={<TransportDetails />} />
+      <Route
+        path="/transport/:id"
+        element={<TransportDetails />}
+      />
+
       <Route path="/itinerary" element={<Itinerary />} />
-      <Route path="/itinerary/:id/edit" element={<Itinerary />} />
-      <Route path="/my-itineraries" element={<MyItineraries />} />
-      <Route path="/admin" element={<AdminDashboard />} />
-      <Route path="/admin/states" element={<StatesAdmin />} />
+      <Route
+        path="/itinerary/:id/edit"
+        element={<Itinerary />}
+      />
+
+      <Route
+        path="/my-itineraries"
+        element={<MyItineraries />}
+      />
+
+      {/* Protected admin routes */}
+      <Route element={<AdminRoute />}>
+        <Route
+          path="/admin"
+          element={<AdminDashboard />}
+        />
+
+        <Route
+          path="/admin/states"
+          element={<StatesAdmin />}
+        />
+      </Route>
 
       <Route path="*" element={<NotFound />} />
     </Routes>
