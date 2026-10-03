@@ -34,6 +34,30 @@ const destinationService = {
       stateId,
     });
   },
+
+  async create(destinationData) {
+    const response = await api.post(
+      API.DESTINATIONS,
+      destinationData
+    );
+
+    return response.data;
+  },
+
+  async update(id, destinationData) {
+    const response = await api.put(
+      `${API.DESTINATIONS}/${id}`,
+      destinationData
+    );
+
+    return response.data;
+  },
+
+  async delete(id) {
+    await api.delete(
+      `${API.DESTINATIONS}/${id}`
+    );
+  },
 };
 
 export default destinationService;
