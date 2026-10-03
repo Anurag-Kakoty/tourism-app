@@ -3,8 +3,8 @@ import {
   HiOutlineBars3,
   HiOutlineXMark,
   HiOutlineUserCircle,
+  HiOutlineMap,
 } from "react-icons/hi2";
-import { HiOutlineMap } from "react-icons/hi2";
 
 import Logo from "./Logo";
 import DesktopNav from "./DesktopNav";
@@ -180,6 +180,38 @@ export default function Navbar() {
                         My Itineraries
                       </span>
                     </button>
+
+                    {user.role === "ADMIN" && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setAccountOpen(false);
+                          window.location.href = "/admin";
+                        }}
+                        className="
+                          mt-1
+                          flex
+                          w-full
+                          items-center
+                          gap-3
+                          rounded-lg
+                          px-3
+                          py-2.5
+                          text-left
+                          text-sm
+                          font-medium
+                          text-slate-700
+                          transition-colors
+                          hover:bg-slate-100
+                        "
+                      >
+                        <HiOutlineMap size={20} />
+
+                        <span>
+                          Admin Dashboard
+                        </span>
+                      </button>
+                    )}
 
                     <button
                       type="button"

@@ -101,6 +101,36 @@ export default function MobileNav({
               </span>
             </NavLink>
 
+            {user.role === "ADMIN" && (
+              <NavLink
+                to="/admin"
+                onClick={onClose}
+                className="
+                  mt-2
+                  flex
+                  w-full
+                  items-center
+                  gap-3
+                  rounded-lg
+                  border
+                  border-slate-200
+                  px-4
+                  py-3
+                  text-sm
+                  font-medium
+                  text-slate-700
+                  transition-colors
+                  hover:bg-slate-100
+                "
+              >
+                <HiOutlineMap size={20} />
+
+                <span>
+                  Admin Dashboard
+                </span>
+              </NavLink>
+            )}
+
             <button
               type="button"
               onClick={onLogout}
@@ -112,6 +142,7 @@ export default function MobileNav({
                 border-slate-200
                 px-4
                 py-3
+                text-left
                 text-sm
                 font-medium
                 text-slate-700
