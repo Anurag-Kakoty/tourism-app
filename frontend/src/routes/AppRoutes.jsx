@@ -24,6 +24,7 @@ import Destinations from "../pages/Destinations/Destinations";
 import DestinationDetails from "../pages/Destinations/DestinationDetails";
 import MyItineraries from "../pages/MyItineraries/MyItineraries";
 import AdminDashboard from "../pages/Admin/AdminDashboard";
+import StatesAdmin from "../pages/Admin/StatesAdmin";
 
 export default function AppRoutes() {
   return (
@@ -52,6 +53,7 @@ export default function AppRoutes() {
       <Route path="/itinerary/:id/edit" element={<Itinerary />} />
       <Route path="/my-itineraries" element={<MyItineraries />} />
       <Route path="/admin" element={<AdminDashboard />} />
+      <Route path="/admin/states" element={<StatesAdmin />} />
 
       <Route path="*" element={<NotFound />} />
     </Routes>
