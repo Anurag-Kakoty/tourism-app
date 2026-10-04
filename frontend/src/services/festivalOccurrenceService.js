@@ -3,7 +3,10 @@ import API from "../constants/api";
 
 const festivalOccurrenceService = {
   async getAll() {
-    const response = await api.get(API.FESTIVAL_OCCURRENCES);
+    const response = await api.get(
+      API.FESTIVAL_OCCURRENCES
+    );
+
     return response.data;
   },
 
@@ -61,6 +64,30 @@ const festivalOccurrenceService = {
     );
 
     return response.data;
+  },
+
+  async create(occurrenceData) {
+    const response = await api.post(
+      API.FESTIVAL_OCCURRENCES,
+      occurrenceData
+    );
+
+    return response.data;
+  },
+
+  async update(id, occurrenceData) {
+    const response = await api.put(
+      `${API.FESTIVAL_OCCURRENCES}/${id}`,
+      occurrenceData
+    );
+
+    return response.data;
+  },
+
+  async delete(id) {
+    await api.delete(
+      `${API.FESTIVAL_OCCURRENCES}/${id}`
+    );
   },
 };
 
