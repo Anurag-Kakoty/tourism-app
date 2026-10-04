@@ -3,9 +3,12 @@ import API from "../constants/api";
 
 const transportService = {
   async getAll(filters = {}) {
-    const response = await api.get(API.TRANSPORT, {
-      params: filters,
-    });
+    const response = await api.get(
+      API.TRANSPORT,
+      {
+        params: filters,
+      }
+    );
 
     return response.data;
   },
@@ -44,7 +47,9 @@ const transportService = {
     return response.data;
   },
 
-  async getByAvailability(available = true) {
+  async getByAvailability(
+    available = true
+  ) {
     const response = await api.get(
       API.TRANSPORT,
       {
@@ -55,6 +60,30 @@ const transportService = {
     );
 
     return response.data;
+  },
+
+  async create(transportData) {
+    const response = await api.post(
+      API.TRANSPORT,
+      transportData
+    );
+
+    return response.data;
+  },
+
+  async update(id, transportData) {
+    const response = await api.put(
+      `${API.TRANSPORT}/${id}`,
+      transportData
+    );
+
+    return response.data;
+  },
+
+  async delete(id) {
+    await api.delete(
+      `${API.TRANSPORT}/${id}`
+    );
   },
 };
 
