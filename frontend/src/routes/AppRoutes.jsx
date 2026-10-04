@@ -27,6 +27,7 @@ import MyItineraries from "../pages/MyItineraries/MyItineraries";
 import AdminDashboard from "../pages/Admin/AdminDashboard";
 import StatesAdmin from "../pages/Admin/StatesAdmin";
 import DestinationsAdmin from "../pages/Admin/DestinationsAdmin";
+import AttractionsAdmin from "../pages/Admin/AttractionsAdmin";
 
 import AdminRoute from "./AdminRoute";
 
@@ -105,6 +106,11 @@ export default function AppRoutes() {
         <Route
           path="/admin/destinations"
           element={<DestinationsAdmin />}
+        />
+
+        <Route
+          path="/admin/attractions"
+          element={<AttractionsAdmin />}
         />
 
       </Route>
