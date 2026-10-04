@@ -3,9 +3,12 @@ import API from "../constants/api";
 
 const stayService = {
   async getAll(filters = {}) {
-    const response = await api.get(API.ACCOMMODATIONS, {
-      params: filters,
-    });
+    const response = await api.get(
+      API.ACCOMMODATIONS,
+      {
+        params: filters,
+      }
+    );
 
     return response.data;
   },
@@ -72,6 +75,30 @@ const stayService = {
     );
 
     return response.data;
+  },
+
+  async create(accommodationData) {
+    const response = await api.post(
+      API.ACCOMMODATIONS,
+      accommodationData
+    );
+
+    return response.data;
+  },
+
+  async update(id, accommodationData) {
+    const response = await api.put(
+      `${API.ACCOMMODATIONS}/${id}`,
+      accommodationData
+    );
+
+    return response.data;
+  },
+
+  async delete(id) {
+    await api.delete(
+      `${API.ACCOMMODATIONS}/${id}`
+    );
   },
 };
 
