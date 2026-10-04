@@ -14,16 +14,20 @@ const guideService = {
     }
 
     if (filters.providesTransport !== "") {
-      params.providesTransport = filters.providesTransport;
+      params.providesTransport =
+        filters.providesTransport;
     }
 
     if (filters.language) {
       params.language = filters.language;
     }
 
-    const response = await api.get(API.GUIDES, {
-      params,
-    });
+    const response = await api.get(
+      API.GUIDES,
+      {
+        params,
+      }
+    );
 
     return response.data;
   },
@@ -62,7 +66,9 @@ const guideService = {
     return response.data;
   },
 
-  async getByProvidesTransport(providesTransport = true) {
+  async getByProvidesTransport(
+    providesTransport = true
+  ) {
     const response = await api.get(
       API.GUIDES,
       {
@@ -86,6 +92,30 @@ const guideService = {
     );
 
     return response.data;
+  },
+
+  async create(guideData) {
+    const response = await api.post(
+      API.GUIDES,
+      guideData
+    );
+
+    return response.data;
+  },
+
+  async update(id, guideData) {
+    const response = await api.put(
+      `${API.GUIDES}/${id}`,
+      guideData
+    );
+
+    return response.data;
+  },
+
+  async delete(id) {
+    await api.delete(
+      `${API.GUIDES}/${id}`
+    );
   },
 };
 
