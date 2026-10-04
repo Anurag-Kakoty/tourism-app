@@ -27,6 +27,30 @@ const placeService = {
 
     return response.data;
   },
+
+  async create(attractionData) {
+    const response = await api.post(
+      API.ATTRACTIONS,
+      attractionData
+    );
+
+    return response.data;
+  },
+
+  async update(id, attractionData) {
+    const response = await api.put(
+      `${API.ATTRACTIONS}/${id}`,
+      attractionData
+    );
+
+    return response.data;
+  },
+
+  async delete(id) {
+    await api.delete(
+      `${API.ATTRACTIONS}/${id}`
+    );
+  },
 };
 
 export default placeService;
