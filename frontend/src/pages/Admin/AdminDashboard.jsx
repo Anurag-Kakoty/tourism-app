@@ -43,6 +43,13 @@ const managementSections = [
     path: "/admin/festivals",
   },
   {
+    title: "Festival Occurrences",
+    description:
+      "Manage festival dates and state-wise festival occurrences.",
+    icon: HiOutlineCalendarDays,
+    path: "/admin/festival-occurrences",
+  },
+  {
     title: "Accommodations",
     description:
       "Manage hotels, homestays, and other stays.",
