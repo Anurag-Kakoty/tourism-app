@@ -8,8 +8,35 @@ const festivalService = {
   },
 
   async getById(id) {
-    const response = await api.get(`${API.FESTIVALS}/${id}`);
+    const response = await api.get(
+      `${API.FESTIVALS}/${id}`
+    );
+
     return response.data;
+  },
+
+  async create(festivalData) {
+    const response = await api.post(
+      API.FESTIVALS,
+      festivalData
+    );
+
+    return response.data;
+  },
+
+  async update(id, festivalData) {
+    const response = await api.put(
+      `${API.FESTIVALS}/${id}`,
+      festivalData
+    );
+
+    return response.data;
+  },
+
+  async delete(id) {
+    await api.delete(
+      `${API.FESTIVALS}/${id}`
+    );
   },
 };
 
