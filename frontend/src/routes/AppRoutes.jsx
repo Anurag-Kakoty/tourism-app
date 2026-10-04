@@ -28,6 +28,7 @@ import AdminDashboard from "../pages/Admin/AdminDashboard";
 import StatesAdmin from "../pages/Admin/StatesAdmin";
 import DestinationsAdmin from "../pages/Admin/DestinationsAdmin";
 import AttractionsAdmin from "../pages/Admin/AttractionsAdmin";
+import FestivalsAdmin from "../pages/Admin/FestivalsAdmin";
 
 import AdminRoute from "./AdminRoute";
 
@@ -111,6 +112,11 @@ export default function AppRoutes() {
         <Route
           path="/admin/attractions"
           element={<AttractionsAdmin />}
+        />
+
+        <Route
+          path="/admin/festivals"
+          element={<FestivalsAdmin />}
         />
 
       </Route>
