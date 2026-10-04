@@ -31,6 +31,7 @@ import AttractionsAdmin from "../pages/Admin/AttractionsAdmin";
 import FestivalsAdmin from "../pages/Admin/FestivalsAdmin";
 import FestivalOccurrencesAdmin from "../pages/Admin/FestivalOccurrencesAdmin"; 
 import AccommodationsAdmin from "../pages/Admin/AccommodationsAdmin";
+import GuidesAdmin from "../pages/Admin/GuidesAdmin";
 
 import AdminRoute from "./AdminRoute";
 
@@ -129,6 +130,11 @@ export default function AppRoutes() {
         <Route
           path="/admin/accommodations"
           element={<AccommodationsAdmin />}
+        />
+
+        <Route
+          path="/admin/guides"
+          element={<GuidesAdmin />}
         />
 
       </Route>
