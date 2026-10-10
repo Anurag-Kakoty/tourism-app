@@ -4,6 +4,7 @@ import {
   HiOutlineSparkles,
   HiOutlineCalendarDays,
   HiOutlineBuildingOffice2,
+  HiOutlineBuildingStorefront,
   HiOutlineUserGroup,
   HiOutlineTruck,
 } from "react-icons/hi2";
@@ -55,6 +56,13 @@ const managementSections = [
       "Manage hotels, homestays, and other stays.",
     icon: HiOutlineBuildingOffice2,
     path: "/admin/accommodations",
+  },
+  {
+    title: "Restaurants",
+    description:
+      "Manage restaurants, cuisines, and dining options.",
+    icon: HiOutlineBuildingStorefront,
+    path: "/admin/restaurants",
   },
   {
     title: "Guides",
