@@ -1,5 +1,6 @@
 package com.tourism.backend.itinerary.service;
 
+import com.tourism.backend.accommodation.entity.Accommodation;
 import com.tourism.backend.accommodation.repository.AccommodationRepository;
 import com.tourism.backend.attraction.entity.Attraction;
 import com.tourism.backend.attraction.repository.AttractionRepository;
@@ -320,6 +321,62 @@ class ItineraryServiceScheduleValidationTest {
         when(userRepository.findByEmailIgnoreCase("traveler@example.com")).thenReturn(Optional.of(testUser));
         when(itineraryRepository.findWithItemsByIdAndUser_Id(1L, 100L)).thenReturn(Optional.of(testItinerary));
         when(restaurantRepository.findById(62L)).thenReturn(Optional.of(restaurant));
+        when(itineraryItemMapper.toEntity(any(), any())).thenReturn(new ItineraryItem());
+        when(itineraryMapper.toResponse(any())).thenReturn(new ItineraryResponse());
+
+        ItineraryResponse response = itineraryService.addItem(1L, request);
+
+        assertThat(response).isNotNull();
+        verify(itineraryItemRepository).save(any(ItineraryItem.class));
+    }
+
+    @Test
+    @DisplayName("Should allow adding accommodation activity with known check-in and check-out times without ambiguous timing rejection")
+    void shouldAllowAddingAccommodationActivityWithKnownCheckInAndCheckOutTimes() {
+        Accommodation accommodation = new Accommodation();
+        accommodation.setId(70L);
+        accommodation.setName("Pine Hill Resort");
+        accommodation.setCheckInTime(LocalTime.of(14, 0));
+        accommodation.setCheckOutTime(LocalTime.of(11, 0));
+
+        ItineraryItemRequest request = new ItineraryItemRequest();
+        request.setDayNumber(1);
+        request.setActivityOrder(4);
+        request.setTime(LocalTime.of(21, 0)); // 9:00 PM evening arrival / stay
+        request.setActivityType(ActivityType.ACCOMMODATION);
+        request.setReferenceId(70L);
+
+        when(userRepository.findByEmailIgnoreCase("traveler@example.com")).thenReturn(Optional.of(testUser));
+        when(itineraryRepository.findWithItemsByIdAndUser_Id(1L, 100L)).thenReturn(Optional.of(testItinerary));
+        when(accommodationRepository.findById(70L)).thenReturn(Optional.of(accommodation));
+        when(itineraryItemMapper.toEntity(any(), any())).thenReturn(new ItineraryItem());
+        when(itineraryMapper.toResponse(any())).thenReturn(new ItineraryResponse());
+
+        ItineraryResponse response = itineraryService.addItem(1L, request);
+
+        assertThat(response).isNotNull();
+        verify(itineraryItemRepository).save(any(ItineraryItem.class));
+    }
+
+    @Test
+    @DisplayName("Should allow adding accommodation activity when schedule is unknown")
+    void shouldAllowAddingAccommodationActivityWhenScheduleIsUnknown() {
+        Accommodation accommodation = new Accommodation();
+        accommodation.setId(71L);
+        accommodation.setName("Rustic Eco Camp");
+        accommodation.setCheckInTime(null);
+        accommodation.setCheckOutTime(null);
+
+        ItineraryItemRequest request = new ItineraryItemRequest();
+        request.setDayNumber(2);
+        request.setActivityOrder(1);
+        request.setTime(LocalTime.of(10, 0));
+        request.setActivityType(ActivityType.ACCOMMODATION);
+        request.setReferenceId(71L);
+
+        when(userRepository.findByEmailIgnoreCase("traveler@example.com")).thenReturn(Optional.of(testUser));
+        when(itineraryRepository.findWithItemsByIdAndUser_Id(1L, 100L)).thenReturn(Optional.of(testItinerary));
+        when(accommodationRepository.findById(71L)).thenReturn(Optional.of(accommodation));
         when(itineraryItemMapper.toEntity(any(), any())).thenReturn(new ItineraryItem());
         when(itineraryMapper.toResponse(any())).thenReturn(new ItineraryResponse());
 

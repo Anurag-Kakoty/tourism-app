@@ -5,6 +5,7 @@ import lombok.Builder;
 import lombok.Getter;
 
 import java.math.BigDecimal;
+import java.time.LocalTime;
 
 @Getter
 @Builder
@@ -16,4 +17,6 @@ public class AccommodationCandidate {
     private AccommodationType type;
     private BigDecimal pricePerNight;
     private Double rating;
+    private LocalTime checkInTime;
+    private LocalTime checkOutTime;
 }

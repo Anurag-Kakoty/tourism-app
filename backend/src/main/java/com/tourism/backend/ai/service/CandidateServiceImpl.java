@@ -255,6 +255,8 @@ public class CandidateServiceImpl implements CandidateService {
                 .type(accommodation.getType())
                 .pricePerNight(accommodation.getPricePerNight())
                 .rating(accommodation.getRating())
+                .checkInTime(accommodation.getCheckInTime())
+                .checkOutTime(accommodation.getCheckOutTime())
                 .build();
     }
 

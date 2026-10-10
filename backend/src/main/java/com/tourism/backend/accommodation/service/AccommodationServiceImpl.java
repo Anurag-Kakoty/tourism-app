@@ -7,6 +7,7 @@ import com.tourism.backend.accommodation.entity.AccommodationType;
 import com.tourism.backend.accommodation.mapper.AccommodationMapper;
 import com.tourism.backend.accommodation.repository.AccommodationRepository;
 import com.tourism.backend.accommodation.specification.AccommodationSpecification;
+import com.tourism.backend.accommodation.util.AccommodationScheduleValidator;
 import com.tourism.backend.destination.entity.Destination;
 import com.tourism.backend.destination.repository.DestinationRepository;
 import com.tourism.backend.exception.DuplicateResourceException;
@@ -34,6 +35,11 @@ public class AccommodationServiceImpl
     @Override
     public AccommodationResponse create(
             AccommodationRequest request) {
+
+        AccommodationScheduleValidator.validateSchedule(
+                request.getCheckInTime(),
+                request.getCheckOutTime()
+        );
 
         log.info(
                 "Creating accommodation '{}'",
@@ -71,6 +77,11 @@ public class AccommodationServiceImpl
     public AccommodationResponse update(
             Long id,
             AccommodationRequest request) {
+
+        AccommodationScheduleValidator.validateSchedule(
+                request.getCheckInTime(),
+                request.getCheckOutTime()
+        );
 
         log.info(
                 "Updating accommodation {}",

@@ -32,6 +32,8 @@ public class AccommodationMapper {
                         ? request.getAvailable()
                         : true
         );
+        accommodation.setCheckInTime(request.getCheckInTime());
+        accommodation.setCheckOutTime(request.getCheckOutTime());
         accommodation.setDestination(destination);
 
         return accommodation;
@@ -59,6 +61,8 @@ public class AccommodationMapper {
                         ? request.getAvailable()
                         : true
         );
+        accommodation.setCheckInTime(request.getCheckInTime());
+        accommodation.setCheckOutTime(request.getCheckOutTime());
         accommodation.setDestination(destination);
     }
 
@@ -81,6 +85,8 @@ public class AccommodationMapper {
         response.setLongitude(accommodation.getLongitude());
         response.setImageUrl(accommodation.getImageUrl());
         response.setAvailable(accommodation.getAvailable());
+        response.setCheckInTime(accommodation.getCheckInTime());
+        response.setCheckOutTime(accommodation.getCheckOutTime());
 
         response.setDestinationId(accommodation.getDestination().getId());
         response.setDestinationName(accommodation.getDestination().getName());

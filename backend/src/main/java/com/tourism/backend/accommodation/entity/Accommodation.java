@@ -8,6 +8,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.math.BigDecimal;
+import java.time.LocalTime;
 
 @Entity
 @Table(name = "accommodations")
@@ -52,6 +53,12 @@ public class Accommodation extends BaseEntity {
 
     @Column(nullable = false)
     private Boolean available = true;
+
+    @Column(name = "check_in_time")
+    private LocalTime checkInTime;
+
+    @Column(name = "check_out_time")
+    private LocalTime checkOutTime;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "destination_id", nullable = false)
