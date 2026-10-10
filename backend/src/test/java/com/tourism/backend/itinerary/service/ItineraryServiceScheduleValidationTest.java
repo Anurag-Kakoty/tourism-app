@@ -15,6 +15,7 @@ import com.tourism.backend.itinerary.mapper.ItineraryItemMapper;
 import com.tourism.backend.itinerary.mapper.ItineraryMapper;
 import com.tourism.backend.itinerary.repository.ItineraryItemRepository;
 import com.tourism.backend.itinerary.repository.ItineraryRepository;
+import com.tourism.backend.restaurant.entity.Restaurant;
 import com.tourism.backend.restaurant.repository.RestaurantRepository;
 import com.tourism.backend.transport.repository.TransportRepository;
 import com.tourism.backend.user.entity.User;
@@ -202,6 +203,123 @@ class ItineraryServiceScheduleValidationTest {
         when(userRepository.findByEmailIgnoreCase("traveler@example.com")).thenReturn(Optional.of(testUser));
         when(itineraryRepository.findWithItemsByIdAndUser_Id(1L, 100L)).thenReturn(Optional.of(testItinerary));
         when(attractionRepository.findById(52L)).thenReturn(Optional.of(attraction));
+        when(itineraryItemMapper.toEntity(any(), any())).thenReturn(new ItineraryItem());
+        when(itineraryMapper.toResponse(any())).thenReturn(new ItineraryResponse());
+
+        ItineraryResponse response = itineraryService.addItem(1L, request);
+
+        assertThat(response).isNotNull();
+        verify(itineraryItemRepository).save(any(ItineraryItem.class));
+    }
+
+    @Test
+    @DisplayName("Should allow adding restaurant activity when schedule is unknown")
+    void shouldAllowAddingRestaurantActivityWhenScheduleIsUnknown() {
+        Restaurant restaurant = new Restaurant();
+        restaurant.setId(60L);
+        restaurant.setName("Dhaba Express");
+        restaurant.setOpeningHours("10:00-23:00");
+        restaurant.setOpeningTime(null);
+        restaurant.setClosingTime(null);
+        restaurant.setClosedDays(Collections.emptySet());
+
+        ItineraryItemRequest request = new ItineraryItemRequest();
+        request.setDayNumber(1);
+        request.setActivityOrder(1);
+        request.setTime(LocalTime.of(15, 30));
+        request.setActivityType(ActivityType.RESTAURANT);
+        request.setReferenceId(60L);
+
+        when(userRepository.findByEmailIgnoreCase("traveler@example.com")).thenReturn(Optional.of(testUser));
+        when(itineraryRepository.findWithItemsByIdAndUser_Id(1L, 100L)).thenReturn(Optional.of(testItinerary));
+        when(restaurantRepository.findById(60L)).thenReturn(Optional.of(restaurant));
+        when(itineraryItemMapper.toEntity(any(), any())).thenReturn(new ItineraryItem());
+        when(itineraryMapper.toResponse(any())).thenReturn(new ItineraryResponse());
+
+        ItineraryResponse response = itineraryService.addItem(1L, request);
+
+        assertThat(response).isNotNull();
+        verify(itineraryItemRepository).save(any(ItineraryItem.class));
+    }
+
+    @Test
+    @DisplayName("Should reject adding restaurant activity on closed day")
+    void shouldRejectAddingRestaurantActivityOnClosedDay() {
+        Restaurant restaurant = new Restaurant();
+        restaurant.setId(61L);
+        restaurant.setName("Royal Dining");
+        restaurant.setOpeningTime(LocalTime.of(12, 0));
+        restaurant.setClosingTime(LocalTime.of(22, 0));
+        restaurant.setClosedDays(Set.of(DayOfWeek.MONDAY));
+
+        ItineraryItemRequest request = new ItineraryItemRequest();
+        request.setDayNumber(1); // Day 1 = Monday (closed)
+        request.setActivityOrder(1);
+        request.setTime(LocalTime.of(13, 0));
+        request.setActivityType(ActivityType.RESTAURANT);
+        request.setReferenceId(61L);
+
+        when(userRepository.findByEmailIgnoreCase("traveler@example.com")).thenReturn(Optional.of(testUser));
+        when(itineraryRepository.findWithItemsByIdAndUser_Id(1L, 100L)).thenReturn(Optional.of(testItinerary));
+        when(restaurantRepository.findById(61L)).thenReturn(Optional.of(restaurant));
+
+        assertThatThrownBy(() -> itineraryService.addItem(1L, request))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("Cannot schedule 'Royal Dining' on 2026-10-12")
+                .hasMessageContaining("closed on MONDAYs");
+    }
+
+    @Test
+    @DisplayName("Should reject adding restaurant activity outside operating sessions (split sessions)")
+    void shouldRejectAddingRestaurantActivityOutsideOperatingSessions() {
+        Restaurant restaurant = new Restaurant();
+        restaurant.setId(62L);
+        restaurant.setName("Brahmaputra Grill");
+        restaurant.setOpeningTime(LocalTime.of(12, 0));
+        restaurant.setClosingTime(LocalTime.of(15, 0));
+        restaurant.setSecondOpeningTime(LocalTime.of(19, 0));
+        restaurant.setSecondClosingTime(LocalTime.of(23, 0));
+        restaurant.setClosedDays(Collections.emptySet());
+
+        ItineraryItemRequest request = new ItineraryItemRequest();
+        request.setDayNumber(2); // Tuesday
+        request.setActivityOrder(1);
+        request.setTime(LocalTime.of(16, 30)); // 4:30 PM is between lunch and dinner
+        request.setActivityType(ActivityType.RESTAURANT);
+        request.setReferenceId(62L);
+
+        when(userRepository.findByEmailIgnoreCase("traveler@example.com")).thenReturn(Optional.of(testUser));
+        when(itineraryRepository.findWithItemsByIdAndUser_Id(1L, 100L)).thenReturn(Optional.of(testItinerary));
+        when(restaurantRepository.findById(62L)).thenReturn(Optional.of(restaurant));
+
+        assertThatThrownBy(() -> itineraryService.addItem(1L, request))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("Cannot schedule 'Brahmaputra Grill' at 16:30")
+                .hasMessageContaining("outside operating hours (12:00 - 15:00, 19:00 - 23:00)");
+    }
+
+    @Test
+    @DisplayName("Should accept adding restaurant activity during second session")
+    void shouldAcceptAddingRestaurantActivityDuringSecondSession() {
+        Restaurant restaurant = new Restaurant();
+        restaurant.setId(62L);
+        restaurant.setName("Brahmaputra Grill");
+        restaurant.setOpeningTime(LocalTime.of(12, 0));
+        restaurant.setClosingTime(LocalTime.of(15, 0));
+        restaurant.setSecondOpeningTime(LocalTime.of(19, 0));
+        restaurant.setSecondClosingTime(LocalTime.of(23, 0));
+        restaurant.setClosedDays(Collections.emptySet());
+
+        ItineraryItemRequest request = new ItineraryItemRequest();
+        request.setDayNumber(2); // Tuesday
+        request.setActivityOrder(1);
+        request.setTime(LocalTime.of(20, 0)); // 8:00 PM is during dinner
+        request.setActivityType(ActivityType.RESTAURANT);
+        request.setReferenceId(62L);
+
+        when(userRepository.findByEmailIgnoreCase("traveler@example.com")).thenReturn(Optional.of(testUser));
+        when(itineraryRepository.findWithItemsByIdAndUser_Id(1L, 100L)).thenReturn(Optional.of(testItinerary));
+        when(restaurantRepository.findById(62L)).thenReturn(Optional.of(restaurant));
         when(itineraryItemMapper.toEntity(any(), any())).thenReturn(new ItineraryItem());
         when(itineraryMapper.toResponse(any())).thenReturn(new ItineraryResponse());
 

@@ -15,6 +15,7 @@ import com.tourism.backend.ai.dto.candidate.RestaurantCandidate;
 import com.tourism.backend.ai.dto.candidate.TransportCandidate;
 import com.tourism.backend.ai.recommendation.RecommendationService;
 import com.tourism.backend.attraction.util.AttractionScheduleValidator;
+import com.tourism.backend.restaurant.util.RestaurantScheduleValidator;
 import com.tourism.backend.itinerary.entity.ActivityType;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -282,6 +283,28 @@ public class AiItineraryServiceImpl
                                 attraction.getClosedDays(),
                                 attraction.getOpeningTime(),
                                 attraction.getClosingTime()
+                        );
+                    });
+        }
+
+        if (item.getActivityType() == ActivityType.RESTAURANT) {
+            candidates.getRestaurants().stream()
+                    .filter(c -> c.getId().equals(item.getReferenceId()))
+                    .findFirst()
+                    .ifPresent(restaurant -> {
+                        LocalDate visitDate = (startDate != null && item.getDayNumber() != null)
+                                ? startDate.plusDays(item.getDayNumber() - 1)
+                                : null;
+
+                        RestaurantScheduleValidator.validateSchedule(
+                                restaurant.getName(),
+                                visitDate,
+                                item.getTime(),
+                                restaurant.getClosedDays(),
+                                restaurant.getOpeningTime(),
+                                restaurant.getClosingTime(),
+                                restaurant.getSecondOpeningTime(),
+                                restaurant.getSecondClosingTime()
                         );
                     });
         }

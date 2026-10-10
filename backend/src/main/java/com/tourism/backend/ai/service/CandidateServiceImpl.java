@@ -269,6 +269,11 @@ public class CandidateServiceImpl implements CandidateService {
                 .vegetarian(restaurant.getVegetarian())
                 .rating(restaurant.getRating())
                 .priceRange(restaurant.getPriceRange())
+                .openingTime(restaurant.getOpeningTime())
+                .closingTime(restaurant.getClosingTime())
+                .secondOpeningTime(restaurant.getSecondOpeningTime())
+                .secondClosingTime(restaurant.getSecondClosingTime())
+                .closedDays(restaurant.getClosedDays())
                 .build();
     }
 

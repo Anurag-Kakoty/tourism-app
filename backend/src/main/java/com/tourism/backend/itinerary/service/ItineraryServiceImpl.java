@@ -33,6 +33,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.jpa.domain.Specification;
 import com.tourism.backend.attraction.util.AttractionScheduleValidator;
+import com.tourism.backend.restaurant.util.RestaurantScheduleValidator;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -377,6 +378,26 @@ public class ItineraryServiceImpl implements ItineraryService {
                     attraction.getClosedDays(),
                     attraction.getOpeningTime(),
                     attraction.getClosingTime()
+            );
+        }
+
+        if (request.getActivityType() == ActivityType.RESTAURANT) {
+            Restaurant restaurant = restaurantRepository.findById(request.getReferenceId())
+                    .orElseThrow(() -> new ResourceNotFoundException("Restaurant not found."));
+
+            LocalDate visitDate = (itinerary.getStartDate() != null && request.getDayNumber() != null)
+                    ? itinerary.getStartDate().plusDays(request.getDayNumber() - 1)
+                    : null;
+
+            RestaurantScheduleValidator.validateSchedule(
+                    restaurant.getName(),
+                    visitDate,
+                    request.getTime(),
+                    restaurant.getClosedDays(),
+                    restaurant.getOpeningTime(),
+                    restaurant.getClosingTime(),
+                    restaurant.getSecondOpeningTime(),
+                    restaurant.getSecondClosingTime()
             );
         }
     }

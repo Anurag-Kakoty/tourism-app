@@ -11,6 +11,7 @@ import com.tourism.backend.restaurant.entity.PriceRange;
 import com.tourism.backend.restaurant.entity.Restaurant;
 import com.tourism.backend.restaurant.mapper.RestaurantMapper;
 import com.tourism.backend.restaurant.repository.RestaurantRepository;
+import com.tourism.backend.restaurant.util.RestaurantScheduleValidator;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -30,6 +31,13 @@ public class RestaurantServiceImpl implements RestaurantService {
 
     @Override
     public RestaurantResponse createRestaurant(RestaurantRequest request) {
+
+        RestaurantScheduleValidator.validateTimeWindows(
+                request.getOpeningTime(),
+                request.getClosingTime(),
+                request.getSecondOpeningTime(),
+                request.getSecondClosingTime()
+        );
 
         if (request.getPhone() != null &&
                 restaurantRepository.existsByPhone(request.getPhone())) {
@@ -51,6 +59,13 @@ public class RestaurantServiceImpl implements RestaurantService {
     @Override
     public RestaurantResponse updateRestaurant(Long id, RestaurantRequest request) {
 
+        RestaurantScheduleValidator.validateTimeWindows(
+                request.getOpeningTime(),
+                request.getClosingTime(),
+                request.getSecondOpeningTime(),
+                request.getSecondClosingTime()
+        );
+
         Restaurant restaurant = restaurantRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Restaurant not found."));
 
@@ -62,17 +77,7 @@ public class RestaurantServiceImpl implements RestaurantService {
         Destination destination = destinationRepository.findById(request.getDestinationId())
                 .orElseThrow(() -> new ResourceNotFoundException("Destination not found."));
 
-        restaurant.setName(request.getName());
-        restaurant.setDescription(request.getDescription());
-        restaurant.setCuisine(request.getCuisine());
-        restaurant.setVegetarian(request.getVegetarian());
-        restaurant.setRating(request.getRating() != null ? request.getRating() : 0.0);
-        restaurant.setPriceRange(request.getPriceRange());
-        restaurant.setOpeningHours(request.getOpeningHours());
-        restaurant.setPhone(request.getPhone());
-        restaurant.setWebsite(request.getWebsite());
-        restaurant.setImageUrl(request.getImageUrl());
-        restaurant.setDestination(destination);
+        restaurantMapper.updateEntity(restaurant, request, destination);
 
         Restaurant updatedRestaurant = restaurantRepository.save(restaurant);
 

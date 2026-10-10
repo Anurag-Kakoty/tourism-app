@@ -5,6 +5,10 @@ import com.tourism.backend.restaurant.entity.PriceRange;
 import lombok.Builder;
 import lombok.Getter;
 
+import java.time.DayOfWeek;
+import java.time.LocalTime;
+import java.util.Set;
+
 @Getter
 @Builder
 public class RestaurantCandidate {
@@ -16,4 +20,9 @@ public class RestaurantCandidate {
     private Boolean vegetarian;
     private Double rating;
     private PriceRange priceRange;
+    private LocalTime openingTime;
+    private LocalTime closingTime;
+    private LocalTime secondOpeningTime;
+    private LocalTime secondClosingTime;
+    private Set<DayOfWeek> closedDays;
 }

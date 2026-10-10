@@ -12,6 +12,11 @@ public class RestaurantMapper {
     public Restaurant toEntity(RestaurantRequest request, Destination destination) {
 
         Restaurant restaurant = new Restaurant();
+        updateEntity(restaurant, request, destination);
+        return restaurant;
+    }
+
+    public void updateEntity(Restaurant restaurant, RestaurantRequest request, Destination destination) {
 
         restaurant.setName(request.getName());
         restaurant.setDescription(request.getDescription());
@@ -20,12 +25,15 @@ public class RestaurantMapper {
         restaurant.setRating(request.getRating() != null ? request.getRating() : 0.0);
         restaurant.setPriceRange(request.getPriceRange());
         restaurant.setOpeningHours(request.getOpeningHours());
+        restaurant.setOpeningTime(request.getOpeningTime());
+        restaurant.setClosingTime(request.getClosingTime());
+        restaurant.setSecondOpeningTime(request.getSecondOpeningTime());
+        restaurant.setSecondClosingTime(request.getSecondClosingTime());
+        restaurant.setClosedDays(request.getClosedDays() != null ? request.getClosedDays() : new java.util.HashSet<>());
         restaurant.setPhone(request.getPhone());
         restaurant.setWebsite(request.getWebsite());
         restaurant.setImageUrl(request.getImageUrl());
         restaurant.setDestination(destination);
-
-        return restaurant;
     }
 
     public RestaurantResponse toResponse(Restaurant restaurant) {
@@ -40,6 +48,11 @@ public class RestaurantMapper {
         response.setRating(restaurant.getRating());
         response.setPriceRange(restaurant.getPriceRange());
         response.setOpeningHours(restaurant.getOpeningHours());
+        response.setOpeningTime(restaurant.getOpeningTime());
+        response.setClosingTime(restaurant.getClosingTime());
+        response.setSecondOpeningTime(restaurant.getSecondOpeningTime());
+        response.setSecondClosingTime(restaurant.getSecondClosingTime());
+        response.setClosedDays(restaurant.getClosedDays() != null ? new java.util.HashSet<>(restaurant.getClosedDays()) : new java.util.HashSet<>());
         response.setPhone(restaurant.getPhone());
         response.setWebsite(restaurant.getWebsite());
         response.setImageUrl(restaurant.getImageUrl());

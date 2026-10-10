@@ -7,6 +7,11 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.time.DayOfWeek;
+import java.time.LocalTime;
+import java.util.HashSet;
+import java.util.Set;
+
 @Entity
 @Table(name = "restaurants")
 @Getter
@@ -35,6 +40,27 @@ public class Restaurant extends BaseEntity {
     private PriceRange priceRange;
 
     private String openingHours;
+
+    @Column
+    private LocalTime openingTime;
+
+    @Column
+    private LocalTime closingTime;
+
+    @Column
+    private LocalTime secondOpeningTime;
+
+    @Column
+    private LocalTime secondClosingTime;
+
+    @ElementCollection(targetClass = DayOfWeek.class, fetch = FetchType.EAGER)
+    @CollectionTable(
+            name = "restaurant_closed_days",
+            joinColumns = @JoinColumn(name = "restaurant_id")
+    )
+    @Enumerated(EnumType.STRING)
+    @Column(name = "day_of_week", nullable = false)
+    private Set<DayOfWeek> closedDays = new HashSet<>();
 
     private String phone;
 
