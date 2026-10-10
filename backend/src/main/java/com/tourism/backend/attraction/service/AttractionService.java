@@ -7,24 +7,25 @@ import java.util.List;
 
 public interface AttractionService {
 
-    AttractionResponse createAttraction(
-            AttractionRequest request);
+        AttractionResponse createAttraction(
+                AttractionRequest request);
 
-    List<AttractionResponse> getAllAttractions(
-            Long stateId,
-            Long destinationId,
-            Long experienceId,
-            Long tagId,
-            Boolean featured
-    );
+        List<AttractionResponse> getAllAttractions(
+                Long stateId,
+                Long destinationId,
+                Long experienceId,
+                Long tagId,
+                Boolean featured
+        );
 
-    List<AttractionResponse> getFeaturedAttractions();
+        List<AttractionResponse> getFeaturedAttractions();
 
-    AttractionResponse getAttractionById(Long id);
+        AttractionResponse getAttractionById(Long id);
 
-    AttractionResponse updateAttraction(
-            Long id,
-            AttractionRequest request);
+        AttractionResponse updateAttraction(
+                Long id,
+                AttractionRequest request
+        );
 
-    void deleteAttraction(Long id);
+        void deleteAttraction(Long id);
 }
