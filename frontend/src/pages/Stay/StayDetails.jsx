@@ -7,6 +7,7 @@ import ErrorMessage from "../../components/common/feedback/ErrorMessage";
 import Badge from "../../components/common/display/Badge";
 
 import stayService from "../../services/stayService";
+import { formatTime } from "../../utils/schedule";
 
 export default function StayDetails() {
   const { id } = useParams();
@@ -16,24 +17,24 @@ export default function StayDetails() {
   const [error, setError] = useState("");
 
   useEffect(() => {
+    async function loadStay() {
+      try {
+        setLoading(true);
+        setError("");
+
+        const data = await stayService.getById(id);
+
+        setStay(data);
+      } catch (err) {
+        console.error(err);
+        setError("Unable to load stay.");
+      } finally {
+        setLoading(false);
+      }
+    }
+
     loadStay();
   }, [id]);
-
-  async function loadStay() {
-    try {
-      setLoading(true);
-      setError("");
-
-      const data = await stayService.getById(id);
-
-      setStay(data);
-    } catch (err) {
-      console.error(err);
-      setError("Unable to load stay.");
-    } finally {
-      setLoading(false);
-    }
-  }
 
   if (loading) {
     return (
@@ -130,6 +131,30 @@ export default function StayDetails() {
 
                   <p className="mt-1 font-semibold">
                     ★ {stay.rating}
+                  </p>
+                </div>
+              )}
+
+              {formatTime(stay.checkInTime) && (
+                <div>
+                  <p className="text-sm text-slate-500">
+                    Check-in
+                  </p>
+
+                  <p className="mt-1 font-medium">
+                    {formatTime(stay.checkInTime)}
+                  </p>
+                </div>
+              )}
+
+              {formatTime(stay.checkOutTime) && (
+                <div>
+                  <p className="text-sm text-slate-500">
+                    Check-out
+                  </p>
+
+                  <p className="mt-1 font-medium">
+                    {formatTime(stay.checkOutTime)}
                   </p>
                 </div>
               )}

@@ -3,6 +3,7 @@ import { useParams } from "react-router-dom";
 
 import Section from "../../components/common/layout/Section";
 import placeService from "../../services/placeService";
+import { getAttractionSchedule } from "../../utils/schedule";
 
 export default function PlaceDetails() {
   const { id } = useParams();
@@ -12,23 +13,23 @@ export default function PlaceDetails() {
   const [error, setError] = useState("");
 
   useEffect(() => {
+    async function loadPlace() {
+      try {
+        setLoading(true);
+
+        const data = await placeService.getById(id);
+
+        setPlace(data);
+      } catch (err) {
+        console.error(err);
+        setError("Unable to load attraction.");
+      } finally {
+        setLoading(false);
+      }
+    }
+
     loadPlace();
   }, [id]);
-
-  async function loadPlace() {
-    try {
-      setLoading(true);
-
-      const data = await placeService.getById(id);
-
-      setPlace(data);
-    } catch (err) {
-      console.error(err);
-      setError("Unable to load attraction.");
-    } finally {
-      setLoading(false);
-    }
-  }
 
   if (loading) {
     return (
@@ -53,6 +54,8 @@ export default function PlaceDetails() {
       </Section>
     );
   }
+
+  const { hoursText, closedDaysText } = getAttractionSchedule(place);
 
   return (
     <Section>
@@ -88,6 +91,22 @@ export default function PlaceDetails() {
           <p className="mt-8 leading-8">
             {place.description}
           </p>
+
+          <div className="mt-8">
+            <h3 className="text-lg font-semibold">
+              Opening Hours
+            </h3>
+
+            <p className="mt-2 text-slate-700">
+              {hoursText}
+            </p>
+
+            {closedDaysText && (
+              <p className="mt-1 text-sm text-slate-500">
+                Closed on {closedDaysText}
+              </p>
+            )}
+          </div>
 
           <div className="mt-8">
             <h3 className="text-lg font-semibold">
