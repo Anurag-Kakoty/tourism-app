@@ -34,6 +34,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDate;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 @Service
 @RequiredArgsConstructor
@@ -223,7 +224,11 @@ public class CandidateServiceImpl implements CandidateService {
                 .longitude(attraction.getLongitude())
                 .openingTime(attraction.getOpeningTime())
                 .closingTime(attraction.getClosingTime())
-                .closedDays(attraction.getClosedDays())
+                .closedDays(
+                        attraction.getClosedDays() == null
+                                ? Set.of()
+                                : new HashSet<>(attraction.getClosedDays())
+                )
                 .experienceIds(
                         attraction.getExperiences()
                                 .stream()
@@ -275,7 +280,11 @@ public class CandidateServiceImpl implements CandidateService {
                 .closingTime(restaurant.getClosingTime())
                 .secondOpeningTime(restaurant.getSecondOpeningTime())
                 .secondClosingTime(restaurant.getSecondClosingTime())
-                .closedDays(restaurant.getClosedDays())
+                .closedDays(
+                        restaurant.getClosedDays() == null
+                                ? Set.of()
+                                : new HashSet<>(restaurant.getClosedDays())
+                )
                 .build();
     }
 

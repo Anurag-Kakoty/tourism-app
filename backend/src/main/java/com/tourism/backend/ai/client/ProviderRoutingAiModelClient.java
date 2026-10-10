@@ -51,16 +51,6 @@ public class ProviderRoutingAiModelClient
      * Try Gemini first.
      *
      * If Gemini fails for any reason, fall back to Ollama.
-     *
-     * This includes:
-     * - Invalid Gemini API key
-     * - Missing Gemini API key
-     * - Gemini 400 errors
-     * - Gemini rate limits
-     * - Gemini server errors
-     * - Gemini unavailable
-     * - Network failures
-     * - Gemini response/parsing failures
      */
     private AiGeneratedItinerary generateWithGeminiWithFallback(
             AiItineraryRequest request,
@@ -80,14 +70,16 @@ public class ProviderRoutingAiModelClient
         } catch (RuntimeException geminiException) {
 
             log.warn(
-                    "Gemini itinerary generation failed. Falling back to Ollama.",
+                    "Gemini itinerary generation failed. "
+                            + "Falling back to Ollama.",
                     geminiException
             );
 
             try {
 
                 log.info(
-                        "Attempting AI itinerary generation using Ollama fallback."
+                        "Attempting AI itinerary generation using "
+                                + "Ollama fallback."
                 );
 
                 AiGeneratedItinerary ollamaResult =
@@ -97,7 +89,8 @@ public class ProviderRoutingAiModelClient
                         );
 
                 log.info(
-                        "Ollama fallback successfully generated the itinerary."
+                        "Ollama fallback successfully generated "
+                                + "the itinerary."
                 );
 
                 return ollamaResult;
@@ -105,14 +98,32 @@ public class ProviderRoutingAiModelClient
             } catch (RuntimeException ollamaException) {
 
                 log.error(
-                        "Both Gemini and Ollama itinerary generation failed.",
+                        "Ollama fallback failed after Gemini "
+                                + "itinerary generation failed.",
                         ollamaException
                 );
 
-                throw new IllegalStateException(
-                        "Both Gemini and Ollama itinerary generation failed.",
-                        ollamaException
+                log.error(
+                        "Original Gemini failure:",
+                        geminiException
                 );
+
+                IllegalStateException combinedException =
+                        new IllegalStateException(
+                                "Both Gemini and Ollama itinerary "
+                                        + "generation failed. "
+                                        + "Gemini error: "
+                                        + geminiException.getMessage()
+                                        + "; Ollama error: "
+                                        + ollamaException.getMessage(),
+                                ollamaException
+                        );
+
+                combinedException.addSuppressed(
+                        geminiException
+                );
+
+                throw combinedException;
             }
         }
     }
