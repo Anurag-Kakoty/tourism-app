@@ -14,6 +14,7 @@ import com.tourism.backend.ai.dto.candidate.GuideCandidate;
 import com.tourism.backend.ai.dto.candidate.RestaurantCandidate;
 import com.tourism.backend.ai.dto.candidate.TransportCandidate;
 import com.tourism.backend.ai.recommendation.RecommendationService;
+import com.tourism.backend.attraction.util.AttractionScheduleValidator;
 import com.tourism.backend.itinerary.entity.ActivityType;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -195,6 +196,7 @@ public class AiItineraryServiceImpl
             validateGeneratedItem(
                     item,
                     numberOfDays,
+                    request.getStartDate(),
                     candidates
             );
         }
@@ -203,6 +205,7 @@ public class AiItineraryServiceImpl
     private void validateGeneratedItem(
             AiGeneratedItinerary.GeneratedItem item,
             long numberOfDays,
+            LocalDate startDate,
             RecommendedCandidateContext candidates) {
 
         if (item == null) {
@@ -261,6 +264,26 @@ public class AiItineraryServiceImpl
                             + ": "
                             + item.getReferenceId()
             );
+        }
+
+        if (item.getActivityType() == ActivityType.ATTRACTION) {
+            candidates.getAttractions().stream()
+                    .filter(c -> c.getId().equals(item.getReferenceId()))
+                    .findFirst()
+                    .ifPresent(attraction -> {
+                        LocalDate visitDate = (startDate != null && item.getDayNumber() != null)
+                                ? startDate.plusDays(item.getDayNumber() - 1)
+                                : null;
+
+                        AttractionScheduleValidator.validateSchedule(
+                                attraction.getName(),
+                                visitDate,
+                                item.getTime(),
+                                attraction.getClosedDays(),
+                                attraction.getOpeningTime(),
+                                attraction.getClosingTime()
+                        );
+                    });
         }
     }
 

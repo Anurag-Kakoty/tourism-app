@@ -221,6 +221,9 @@ public class CandidateServiceImpl implements CandidateService {
                 .featured(attraction.getFeatured())
                 .latitude(attraction.getLatitude())
                 .longitude(attraction.getLongitude())
+                .openingTime(attraction.getOpeningTime())
+                .closingTime(attraction.getClosingTime())
+                .closedDays(attraction.getClosedDays())
                 .experienceIds(
                         attraction.getExperiences()
                                 .stream()

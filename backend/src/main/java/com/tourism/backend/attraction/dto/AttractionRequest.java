@@ -1,5 +1,6 @@
 package com.tourism.backend.attraction.dto;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.*;
 import lombok.Getter;
@@ -7,6 +8,8 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.math.BigDecimal;
+import java.time.DayOfWeek;
+import java.time.LocalTime;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -58,6 +61,26 @@ public class AttractionRequest {
     @Min(value = 0, message = "Display order cannot be negative.")
     @Schema(example = "1")
     private Integer displayOrder;
+
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "HH:mm[:ss]")
+    @Schema(
+            description = "Daily opening time in 24-hour format (e.g. 09:00:00). Optional.",
+            example = "09:00:00"
+    )
+    private LocalTime openingTime;
+
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "HH:mm[:ss]")
+    @Schema(
+            description = "Daily closing time in 24-hour format (e.g. 17:30:00). Optional.",
+            example = "17:30:00"
+    )
+    private LocalTime closingTime;
+
+    @Schema(
+            description = "Days of the week when the attraction is closed. Optional.",
+            example = "[\"MONDAY\"]"
+    )
+    private Set<DayOfWeek> closedDays = new HashSet<>();
 
     @Schema(
             description = "IDs of tags associated with the attraction",

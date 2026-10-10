@@ -10,6 +10,8 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.math.BigDecimal;
+import java.time.DayOfWeek;
+import java.time.LocalTime;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -46,6 +48,37 @@ public class Attraction extends BaseEntity {
 
     @Column(nullable = false)
     private Integer displayOrder = 0;
+
+    /**
+     * Daily opening time (e.g. 09:00:00).
+     * Null indicates that operating hours are unverified or unrestricted (e.g. open 24/7).
+     * Assumes uniform opening hours across all open days of the week.
+     * Note: For overnight hours (openingTime > closingTime), v1 closed-day validation evaluates
+     * against the activity's calendar date rather than the shift-start date.
+     */
+    @Column
+    private LocalTime openingTime;
+
+    /**
+     * Daily closing time (e.g. 17:30:00).
+     * Null indicates that operating hours are unverified or unrestricted.
+     * Assumes uniform closing hours across all open days of the week.
+     */
+    @Column
+    private LocalTime closingTime;
+
+    /**
+     * Days of the week when the attraction is closed.
+     * An empty set indicates no known closed days.
+     */
+    @ElementCollection(targetClass = DayOfWeek.class, fetch = FetchType.EAGER)
+    @CollectionTable(
+            name = "attraction_closed_days",
+            joinColumns = @JoinColumn(name = "attraction_id")
+    )
+    @Enumerated(EnumType.STRING)
+    @Column(name = "day_of_week", nullable = false)
+    private Set<DayOfWeek> closedDays = new HashSet<>();
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "destination_id", nullable = false)

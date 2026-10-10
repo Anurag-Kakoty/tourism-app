@@ -50,6 +50,9 @@ public class AttractionMapper {
 
         attraction.setFeatured(request.getFeatured());
         attraction.setDisplayOrder(request.getDisplayOrder());
+        attraction.setOpeningTime(request.getOpeningTime());
+        attraction.setClosingTime(request.getClosingTime());
+        attraction.setClosedDays(request.getClosedDays() != null ? request.getClosedDays() : new java.util.HashSet<>());
 
         attraction.setDestination(destination);
         attraction.setTags(tags);
@@ -71,6 +74,9 @@ public class AttractionMapper {
 
         response.setFeatured(attraction.getFeatured());
         response.setDisplayOrder(attraction.getDisplayOrder());
+        response.setOpeningTime(attraction.getOpeningTime());
+        response.setClosingTime(attraction.getClosingTime());
+        response.setClosedDays(attraction.getClosedDays() != null ? new java.util.HashSet<>(attraction.getClosedDays()) : new java.util.HashSet<>());
 
         response.setDestinationId(attraction.getDestination().getId());
         response.setDestinationName(attraction.getDestination().getName());

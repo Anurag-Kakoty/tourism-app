@@ -32,11 +32,13 @@ import com.tourism.backend.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.jpa.domain.Specification;
+import com.tourism.backend.attraction.util.AttractionScheduleValidator;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.util.List;
 
 @Service
@@ -206,6 +208,10 @@ public class ItineraryServiceImpl implements ItineraryService {
                 request.getActivityType(),
                 request.getReferenceId());
 
+        validateItemSchedule(
+                itinerary,
+                request);
+
         ItineraryItem item =
                 itineraryItemMapper.toEntity(
                         request,
@@ -248,6 +254,10 @@ public class ItineraryServiceImpl implements ItineraryService {
         validateReference(
                 request.getActivityType(),
                 request.getReferenceId());
+
+        validateItemSchedule(
+                itinerary,
+                request);
 
         itineraryItemMapper.updateEntity(
                 item,
@@ -346,6 +356,29 @@ public class ItineraryServiceImpl implements ItineraryService {
         getReferenceEntity(
                 activityType,
                 referenceId);
+    }
+
+    private void validateItemSchedule(
+            Itinerary itinerary,
+            ItineraryItemRequest request) {
+
+        if (request.getActivityType() == ActivityType.ATTRACTION) {
+            Attraction attraction = attractionRepository.findById(request.getReferenceId())
+                    .orElseThrow(() -> new ResourceNotFoundException("Attraction not found."));
+
+            LocalDate visitDate = (itinerary.getStartDate() != null && request.getDayNumber() != null)
+                    ? itinerary.getStartDate().plusDays(request.getDayNumber() - 1)
+                    : null;
+
+            AttractionScheduleValidator.validateSchedule(
+                    attraction.getName(),
+                    visitDate,
+                    request.getTime(),
+                    attraction.getClosedDays(),
+                    attraction.getOpeningTime(),
+                    attraction.getClosingTime()
+            );
+        }
     }
 
     private Object getReferenceEntity(

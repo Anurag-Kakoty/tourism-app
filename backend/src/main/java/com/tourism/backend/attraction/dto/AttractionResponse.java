@@ -1,11 +1,14 @@
 package com.tourism.backend.attraction.dto;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.math.BigDecimal;
+import java.time.DayOfWeek;
+import java.time.LocalTime;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -74,6 +77,26 @@ public class AttractionResponse {
             example = "1"
     )
     private Integer displayOrder;
+
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "HH:mm:ss")
+    @Schema(
+            description = "Opening time in 24-hour format",
+            example = "09:00:00"
+    )
+    private LocalTime openingTime;
+
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "HH:mm:ss")
+    @Schema(
+            description = "Closing time in 24-hour format",
+            example = "17:30:00"
+    )
+    private LocalTime closingTime;
+
+    @Schema(
+            description = "Days of the week when the attraction is closed",
+            example = "[\"MONDAY\"]"
+    )
+    private Set<DayOfWeek> closedDays = new HashSet<>();
 
     @Schema(
             description = "Destination ID",
