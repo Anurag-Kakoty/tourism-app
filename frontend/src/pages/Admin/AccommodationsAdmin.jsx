@@ -26,6 +26,28 @@ const accommodationTypes = [
   "CAMPING",
 ];
 
+function normalizeTimeForInput(timeStr) {
+  if (!timeStr || typeof timeStr !== "string") {
+    return "";
+  }
+  const trimmed = timeStr.trim();
+  const parts = trimmed.split(":");
+  if (parts.length >= 2) {
+    const hours = parts[0].padStart(2, "0");
+    const minutes = parts[1].padStart(2, "0");
+    return `${hours}:${minutes}`;
+  }
+  return "";
+}
+
+function formatTimeForPayload(timeStr) {
+  if (!timeStr || typeof timeStr !== "string") {
+    return null;
+  }
+  const trimmed = timeStr.trim();
+  return trimmed ? trimmed : null;
+}
+
 const emptyForm = {
   name: "",
   description: "",
@@ -41,6 +63,8 @@ const emptyForm = {
   imageUrl: "",
   available: true,
   destinationId: "",
+  checkInTime: "",
+  checkOutTime: "",
 };
 
 export default function AccommodationsAdmin() {
@@ -118,6 +142,8 @@ export default function AccommodationsAdmin() {
         accommodation.available ?? true,
       destinationId:
         accommodation.destinationId || "",
+      checkInTime: normalizeTimeForInput(accommodation.checkInTime),
+      checkOutTime: normalizeTimeForInput(accommodation.checkOutTime),
     });
 
     setError("");
@@ -188,6 +214,8 @@ export default function AccommodationsAdmin() {
             : Number(form.longitude),
         imageUrl:
           form.imageUrl.trim() || null,
+        checkInTime: formatTimeForPayload(form.checkInTime),
+        checkOutTime: formatTimeForPayload(form.checkOutTime),
         available: form.available,
         destinationId:
           Number(form.destinationId),
@@ -608,6 +636,34 @@ export default function AccommodationsAdmin() {
               placeholder="Full accommodation address"
               className={inputClass}
             />
+          </div>
+
+          <div>
+            <h3 className="text-sm font-semibold text-slate-700">
+              Check-in / Check-out Times
+            </h3>
+
+            <p className="mt-1 text-xs text-slate-500">
+              Optional standard check-in and check-out times in 24-hour format.
+            </p>
+
+            <div className="mt-3 grid gap-5 md:grid-cols-2">
+              <FormField
+                label="Check-in Time"
+                name="checkInTime"
+                type="time"
+                value={form.checkInTime}
+                onChange={handleChange}
+              />
+
+              <FormField
+                label="Check-out Time"
+                name="checkOutTime"
+                type="time"
+                value={form.checkOutTime}
+                onChange={handleChange}
+              />
+            </div>
           </div>
 
           <div>

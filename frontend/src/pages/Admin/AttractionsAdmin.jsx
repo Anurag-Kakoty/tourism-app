@@ -19,6 +19,38 @@ import destinationService from "../../services/destinationService";
 import experienceService from "../../services/experienceService";
 import tagService from "../../services/tagService";
 
+const DAYS_OF_WEEK = [
+  { value: "MONDAY", label: "Monday" },
+  { value: "TUESDAY", label: "Tuesday" },
+  { value: "WEDNESDAY", label: "Wednesday" },
+  { value: "THURSDAY", label: "Thursday" },
+  { value: "FRIDAY", label: "Friday" },
+  { value: "SATURDAY", label: "Saturday" },
+  { value: "SUNDAY", label: "Sunday" },
+];
+
+function normalizeTimeForInput(timeStr) {
+  if (!timeStr || typeof timeStr !== "string") {
+    return "";
+  }
+  const trimmed = timeStr.trim();
+  const parts = trimmed.split(":");
+  if (parts.length >= 2) {
+    const hours = parts[0].padStart(2, "0");
+    const minutes = parts[1].padStart(2, "0");
+    return `${hours}:${minutes}`;
+  }
+  return "";
+}
+
+function formatTimeForPayload(timeStr) {
+  if (!timeStr || typeof timeStr !== "string") {
+    return null;
+  }
+  const trimmed = timeStr.trim();
+  return trimmed ? trimmed : null;
+}
+
 const emptyForm = {
   name: "",
   description: "",
@@ -30,6 +62,9 @@ const emptyForm = {
   destinationId: "",
   featured: false,
   displayOrder: 0,
+  openingTime: "",
+  closingTime: "",
+  closedDays: [],
   tagIds: [],
   experienceIds: [],
 };
@@ -55,10 +90,6 @@ export default function AttractionsAdmin() {
   const [successMessage, setSuccessMessage] =
     useState("");
   const [formError, setFormError] = useState("");
-
-  useEffect(() => {
-    loadData();
-  }, []);
 
   async function loadData() {
     try {
@@ -88,6 +119,10 @@ export default function AttractionsAdmin() {
       setLoading(false);
     }
   }
+
+  useEffect(() => {
+    loadData();
+  }, []);
 
   function openCreateModal() {
     setEditingAttraction(null);
@@ -131,6 +166,11 @@ export default function AttractionsAdmin() {
         attraction.displayOrder !== undefined
           ? attraction.displayOrder
           : 0,
+      openingTime: normalizeTimeForInput(attraction.openingTime),
+      closingTime: normalizeTimeForInput(attraction.closingTime),
+      closedDays: attraction.closedDays
+        ? Array.from(attraction.closedDays)
+        : [],
       tagIds: attraction.tagIds || [],
       experienceIds: attraction.experienceIds || [],
     });
@@ -211,6 +251,9 @@ export default function AttractionsAdmin() {
         displayOrder: Number(
           form.displayOrder
         ),
+        openingTime: formatTimeForPayload(form.openingTime),
+        closingTime: formatTimeForPayload(form.closingTime),
+        closedDays: form.closedDays || [],
         tagIds: form.tagIds,
         experienceIds: form.experienceIds,
       };
@@ -675,6 +718,80 @@ export default function AttractionsAdmin() {
               maxLength={500}
               className="w-full rounded-xl border border-slate-300 px-4 py-3 outline-none transition focus:border-[var(--color-primary)] focus:ring-2 focus:ring-[var(--color-primary)]/20"
             />
+          </div>
+
+          <div>
+            <h3 className="mb-2 text-sm font-semibold text-slate-900">
+              Schedule & Opening Hours
+            </h3>
+
+            <p className="mb-4 text-xs text-slate-500">
+              Optional opening and closing hours and days when the attraction is closed.
+            </p>
+
+            <div className="grid gap-5 md:grid-cols-2">
+              <div>
+                <label
+                  htmlFor="openingTime"
+                  className="mb-2 block text-sm font-medium text-slate-700"
+                >
+                  Opening Time
+                </label>
+
+                <input
+                  id="openingTime"
+                  name="openingTime"
+                  type="time"
+                  value={form.openingTime}
+                  onChange={handleChange}
+                  className="w-full rounded-xl border border-slate-300 px-4 py-3 outline-none transition focus:border-[var(--color-primary)] focus:ring-2 focus:ring-[var(--color-primary)]/20"
+                />
+              </div>
+
+              <div>
+                <label
+                  htmlFor="closingTime"
+                  className="mb-2 block text-sm font-medium text-slate-700"
+                >
+                  Closing Time
+                </label>
+
+                <input
+                  id="closingTime"
+                  name="closingTime"
+                  type="time"
+                  value={form.closingTime}
+                  onChange={handleChange}
+                  className="w-full rounded-xl border border-slate-300 px-4 py-3 outline-none transition focus:border-[var(--color-primary)] focus:ring-2 focus:ring-[var(--color-primary)]/20"
+                />
+              </div>
+            </div>
+
+            <div className="mt-4">
+              <label className="mb-2 block text-sm font-medium text-slate-700">
+                Closed Days
+              </label>
+
+              <div className="grid grid-cols-2 gap-2 sm:grid-cols-4 lg:grid-cols-7">
+                {DAYS_OF_WEEK.map((day) => (
+                  <label
+                    key={day.value}
+                    className="flex cursor-pointer items-center gap-2 rounded-xl border border-slate-200 px-3 py-2.5 transition hover:bg-slate-50"
+                  >
+                    <input
+                      type="checkbox"
+                      checked={form.closedDays.includes(day.value)}
+                      onChange={() => toggleSelection("closedDays", day.value)}
+                      className="h-4 w-4 rounded border-slate-300 text-[var(--color-primary)] focus:ring-[var(--color-primary)]"
+                    />
+
+                    <span className="text-xs font-medium text-slate-700">
+                      {day.label}
+                    </span>
+                  </label>
+                ))}
+              </div>
+            </div>
           </div>
 
           <div>
