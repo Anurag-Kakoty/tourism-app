@@ -7,6 +7,87 @@ import placeService from "../../services/placeService";
 import restaurantService from "../../services/restaurantService";
 import stayService from "../../services/stayService";
 import transportService from "../../services/transportService";
+import {
+  formatTime,
+  formatTimeRange,
+  formatClosedDays,
+  getAttractionSchedule,
+} from "../../utils/schedule";
+
+function getActivityScheduleHint(activity, activityType) {
+  if (!activity) {
+    return null;
+  }
+
+  if (activityType === "ATTRACTION") {
+    const { hoursText, closedDaysText } = getAttractionSchedule(activity);
+    return {
+      primary: `Opening hours: ${hoursText}`,
+      secondary: closedDaysText ? `Closed on: ${closedDaysText}` : null,
+    };
+  }
+
+  if (activityType === "RESTAURANT") {
+    const session1 = formatTimeRange(
+      activity.openingTime,
+      activity.closingTime
+    );
+    const session2 = formatTimeRange(
+      activity.secondOpeningTime,
+      activity.secondClosingTime
+    );
+
+    let hoursText;
+    if (session1 && session2) {
+      hoursText = `${session1} · ${session2}`;
+    } else if (session1) {
+      hoursText = session1;
+    } else if (session2) {
+      hoursText = session2;
+    } else if (activity.openingHours && activity.openingHours.trim()) {
+      hoursText = activity.openingHours.trim();
+    } else {
+      hoursText = "Not specified";
+    }
+
+    const closedDaysText = formatClosedDays(activity.closedDays);
+
+    return {
+      primary: `Hours: ${hoursText}`,
+      secondary: closedDaysText ? `Closed on: ${closedDaysText}` : null,
+    };
+  }
+
+  if (activityType === "ACCOMMODATION") {
+    const checkIn = formatTime(activity.checkInTime);
+    const checkOut = formatTime(activity.checkOutTime);
+
+    if (checkIn && checkOut) {
+      return {
+        primary: `Check-in: ${checkIn} · Check-out: ${checkOut}`,
+        secondary: null,
+      };
+    }
+    if (checkIn) {
+      return {
+        primary: `Check-in: ${checkIn} · Check-out: Not specified`,
+        secondary: null,
+      };
+    }
+    if (checkOut) {
+      return {
+        primary: `Check-in: Not specified · Check-out: ${checkOut}`,
+        secondary: null,
+      };
+    }
+    return {
+      primary: "Check-in / Check-out: Not specified",
+      secondary: null,
+    };
+  }
+
+  return null;
+}
 
 const ACTIVITY_TYPES = [
   {
@@ -167,6 +248,17 @@ function AddActivityForm({
     )}`;
   };
 
+  const selectedActivity = form.referenceId
+    ? activities.find(
+        (activity) => String(activity.id) === String(form.referenceId)
+      )
+    : null;
+
+  const scheduleHint = getActivityScheduleHint(
+    selectedActivity,
+    form.activityType
+  );
+
   const handleSubmit = (event) => {
     event.preventDefault();
 
@@ -179,11 +271,6 @@ function AddActivityForm({
       setError("Please select an activity.");
       return;
     }
-
-    const selectedActivity = activities.find(
-      (activity) =>
-        String(activity.id) === String(form.referenceId)
-    );
 
     if (!selectedActivity) {
       setError("The selected activity could not be found.");
@@ -305,6 +392,19 @@ function AddActivityForm({
               </option>
             ))}
           </select>
+
+          {scheduleHint && (
+            <div className="mt-2.5 rounded-xl border border-blue-100 bg-blue-50/50 px-3.5 py-2.5 text-xs text-slate-700">
+              <p className="font-medium text-slate-800">
+                {scheduleHint.primary}
+              </p>
+              {scheduleHint.secondary && (
+                <p className="mt-0.5 text-slate-600">
+                  {scheduleHint.secondary}
+                </p>
+              )}
+            </div>
+          )}
 
           {!loadingActivities && activities.length === 0 && (
             <p className="mt-2 text-sm text-gray-500">

@@ -1,4 +1,5 @@
 import Button from "../common/inputs/Button";
+import { formatTime } from "../../utils/schedule";
 
 function ItineraryItem({
   item,
@@ -18,7 +19,7 @@ function ItineraryItem({
             </span>
 
             <span className="text-sm font-medium text-gray-500">
-              {item.time}
+              {formatTime(item.time) || item.time}
             </span>
           </div>
 
