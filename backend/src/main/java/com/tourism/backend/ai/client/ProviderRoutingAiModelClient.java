@@ -25,6 +25,15 @@ public class ProviderRoutingAiModelClient
             AiItineraryRequest request,
             RecommendedCandidateContext candidates) {
 
+        return generateItinerary(request, candidates, null);
+    }
+
+    @Override
+    public AiGeneratedItinerary generateItinerary(
+            AiItineraryRequest request,
+            RecommendedCandidateContext candidates,
+            String feedback) {
+
         return switch (aiProperties.getProvider()) {
 
             case OPENAI ->
@@ -36,13 +45,15 @@ public class ProviderRoutingAiModelClient
             case GEMINI ->
                     generateWithGeminiWithFallback(
                             request,
-                            candidates
+                            candidates,
+                            feedback
                     );
 
             case OLLAMA ->
                     ollamaModelClient.generateItinerary(
                             request,
-                            candidates
+                            candidates,
+                            feedback
                     );
         };
     }
@@ -54,7 +65,8 @@ public class ProviderRoutingAiModelClient
      */
     private AiGeneratedItinerary generateWithGeminiWithFallback(
             AiItineraryRequest request,
-            RecommendedCandidateContext candidates) {
+            RecommendedCandidateContext candidates,
+            String feedback) {
 
         try {
 
@@ -64,7 +76,8 @@ public class ProviderRoutingAiModelClient
 
             return geminiModelClient.generateItinerary(
                     request,
-                    candidates
+                    candidates,
+                    feedback
             );
 
         } catch (RuntimeException geminiException) {
@@ -85,7 +98,8 @@ public class ProviderRoutingAiModelClient
                 AiGeneratedItinerary ollamaResult =
                         ollamaModelClient.generateItinerary(
                                 request,
-                                candidates
+                                candidates,
+                                feedback
                         );
 
                 log.info(

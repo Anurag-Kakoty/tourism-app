@@ -1,5 +1,6 @@
 package com.tourism.backend.ai.dto.candidate;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Builder;
 import lombok.Getter;
 
@@ -29,8 +30,10 @@ public class AttractionCandidate {
 
     private Double longitude;
 
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "HH:mm:ss")
     private LocalTime openingTime;
 
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "HH:mm:ss")
     private LocalTime closingTime;
 
     private Set<DayOfWeek> closedDays;

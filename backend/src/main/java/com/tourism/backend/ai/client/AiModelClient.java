@@ -9,4 +9,12 @@ public interface AiModelClient {
             AiItineraryRequest request,
             RecommendedCandidateContext candidates
     );
+
+    default AiGeneratedItinerary generateItinerary(
+            AiItineraryRequest request,
+            RecommendedCandidateContext candidates,
+            String feedback
+    ) {
+        return generateItinerary(request, candidates);
+    }
 }

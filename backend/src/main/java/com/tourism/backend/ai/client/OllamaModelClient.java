@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.tourism.backend.ai.config.AiProperties;
 import com.tourism.backend.ai.dto.AiItineraryRequest;
 import com.tourism.backend.ai.dto.RecommendedCandidateContext;
+import com.tourism.backend.ai.dto.TripDayCalendarEntry;
 import com.tourism.backend.itinerary.entity.ActivityType;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
@@ -35,6 +36,15 @@ public class OllamaModelClient implements AiModelClient {
             AiItineraryRequest request,
             RecommendedCandidateContext candidates) {
 
+        return generateItinerary(request, candidates, null);
+    }
+
+    @Override
+    public AiGeneratedItinerary generateItinerary(
+            AiItineraryRequest request,
+            RecommendedCandidateContext candidates,
+            String feedback) {
+
         AiProperties.Ollama ollama =
                 aiProperties.getOllama();
 
@@ -43,7 +53,7 @@ public class OllamaModelClient implements AiModelClient {
                         .baseUrl(ollama.getBaseUrl())
                         .build();
 
-        String prompt = buildPrompt(request, candidates);
+        String prompt = buildPrompt(request, candidates, feedback);
 
         Map<String, Object> requestBody = new LinkedHashMap<>();
 
@@ -93,9 +103,17 @@ public class OllamaModelClient implements AiModelClient {
         }
     }
 
-    private String buildPrompt(
+    String buildPrompt(
             AiItineraryRequest request,
             RecommendedCandidateContext candidates) {
+
+        return buildPrompt(request, candidates, null);
+    }
+
+    String buildPrompt(
+            AiItineraryRequest request,
+            RecommendedCandidateContext candidates,
+            String feedback) {
 
         try {
             long numberOfDays =
@@ -111,12 +129,32 @@ public class OllamaModelClient implements AiModelClient {
                 validDayNumbers.add(day);
             }
 
+            List<TripDayCalendarEntry> tripCalendar =
+                    AiPromptScheduleHelper.buildTripCalendar(
+                            request.getStartDate(),
+                            request.getEndDate()
+                    );
+
+            String tripCalendarFormatted =
+                    AiPromptScheduleHelper.formatTripCalendarText(tripCalendar);
+
+            String feedbackSection = (feedback != null && !feedback.isBlank())
+                    ? """
+
+                    PREVIOUS ATTEMPT VALIDATION FEEDBACK:
+                    The previous itinerary draft failed schedule validation with the following issues:
+                    %s
+                    You MUST fix these issues in this draft. Ensure all activities respect attraction operating hours, weekly closed days, and do not conflict.
+                    """.formatted(feedback)
+                    : "";
+
             Map<String, Object> promptData =
                     new LinkedHashMap<>();
 
             promptData.put("request", request);
             promptData.put("numberOfDays", numberOfDays);
             promptData.put("validDayNumbers", validDayNumbers);
+            promptData.put("tripCalendar", tripCalendar);
             promptData.put("candidates", candidates);
 
             String candidateJson =
@@ -161,21 +199,30 @@ public class OllamaModelClient implements AiModelClient {
                     14. Times must ALWAYS use 24-hour HH:mm:ss format.
                         Do not use AM/PM.
 
-                    15. Keep notes short and practical.
+                    15. Operating hours and schedule rules (CRITICAL):
+                    %s
+
+                    16. Keep notes short and practical.
                         Do not write long explanations or travel essays.
 
-                    16. Generate only the information required by the schema.
+                    17. Generate only the information required by the schema.
 
-                    17. Return ONLY valid JSON matching the supplied schema.
+                    18. Return ONLY valid JSON matching the supplied schema.
                         Do not include Markdown.
                         Do not include explanations outside the JSON.
 
+                    TRIP CALENDAR:
+                    %s
+                    %s
                     USER REQUEST AND AVAILABLE CANDIDATES:
 
                     %s
                     """.formatted(
                     numberOfDays,
                     validDayNumbers,
+                    AiPromptScheduleHelper.SCHEDULE_RULES,
+                    tripCalendarFormatted,
+                    feedbackSection,
                     candidateJson
             );
 

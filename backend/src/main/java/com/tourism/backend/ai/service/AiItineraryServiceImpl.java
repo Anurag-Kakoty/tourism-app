@@ -14,10 +14,11 @@ import com.tourism.backend.ai.dto.candidate.GuideCandidate;
 import com.tourism.backend.ai.dto.candidate.RestaurantCandidate;
 import com.tourism.backend.ai.dto.candidate.TransportCandidate;
 import com.tourism.backend.ai.recommendation.RecommendationService;
-import com.tourism.backend.attraction.util.AttractionScheduleValidator;
-import com.tourism.backend.restaurant.util.RestaurantScheduleValidator;
+import com.tourism.backend.ai.validator.AiItineraryScheduleValidator;
+import com.tourism.backend.ai.validator.ItineraryScheduleValidationResult;
 import com.tourism.backend.itinerary.entity.ActivityType;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -29,6 +30,7 @@ import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class AiItineraryServiceImpl
         implements AiItineraryService {
 
@@ -75,12 +77,14 @@ public class AiItineraryServiceImpl
          * Step 4:
          * Validate the AI response against the request and
          * the candidates that were actually supplied to it.
+         * Auto-correct minor early arrivals if safe, or retry once with feedback.
          */
-        validateGeneratedItinerary(
-                request,
-                generatedItinerary,
-                recommendations
-        );
+        generatedItinerary =
+                validateAndRecoverItinerary(
+                        request,
+                        generatedItinerary,
+                        recommendations
+                );
 
         /*
          * Step 5:
@@ -113,258 +117,52 @@ public class AiItineraryServiceImpl
         }
     }
 
-    private void validateGeneratedItinerary(
+    private AiGeneratedItinerary validateAndRecoverItinerary(
             AiItineraryRequest request,
             AiGeneratedItinerary generatedItinerary,
-            RecommendedCandidateContext candidates) {
+            RecommendedCandidateContext recommendations) {
 
-        if (generatedItinerary == null) {
-            throw new IllegalArgumentException(
-                    "AI model returned no itinerary."
+        ItineraryScheduleValidationResult validationResult =
+                AiItineraryScheduleValidator.validateAndCorrect(
+                        request,
+                        generatedItinerary,
+                        recommendations
+                );
+
+        if (!validationResult.valid()) {
+            String feedback = validationResult.getFeedbackSummary();
+            log.warn(
+                    "AI itinerary failed schedule validation on initial attempt: {}. Retrying once with feedback...",
+                    feedback
             );
+
+            AiGeneratedItinerary retryItinerary =
+                    aiModelClient.generateItinerary(
+                            request,
+                            recommendations,
+                            feedback
+                    );
+
+            validationResult =
+                    AiItineraryScheduleValidator.validateAndCorrect(
+                            request,
+                            retryItinerary,
+                            recommendations
+                    );
+
+            if (!validationResult.valid()) {
+                String retryFeedback = validationResult.getFeedbackSummary();
+                log.error(
+                        "AI itinerary failed schedule validation after retry: {}",
+                        retryFeedback
+                );
+                throw new IllegalArgumentException(
+                        "AI itinerary schedule validation failed: " + retryFeedback
+                );
+            }
         }
 
-        /*
-         * The AI must not change the destination requested
-         * by the user.
-         */
-        if (generatedItinerary.getDestinationId() == null
-                || !generatedItinerary.getDestinationId()
-                .equals(request.getDestinationId())) {
-
-            throw new IllegalArgumentException(
-                    "AI itinerary contains an invalid destination."
-            );
-        }
-
-        /*
-         * The AI must respect the requested travel dates.
-         */
-        if (!request.getStartDate()
-                .equals(generatedItinerary.getStartDate())
-                || !request.getEndDate()
-                .equals(generatedItinerary.getEndDate())) {
-
-            throw new IllegalArgumentException(
-                    "AI itinerary dates do not match the requested dates."
-            );
-        }
-
-        /*
-         * The number of travelers is controlled by the user's
-         * request and must not be changed by the AI.
-         */
-        if (generatedItinerary.getNumberOfTravelers() == null
-                || !generatedItinerary.getNumberOfTravelers()
-                .equals(request.getNumberOfTravelers())) {
-
-            throw new IllegalArgumentException(
-                    "AI itinerary contains an invalid number of travelers."
-            );
-        }
-
-        /*
-         * Estimated budget must be present and non-negative.
-         *
-         * We do not require it to be <= the user's budget because
-         * the AI may legitimately determine that the requested
-         * itinerary cannot fit within the supplied budget.
-         */
-        if (generatedItinerary.getEstimatedBudget() == null
-                || generatedItinerary.getEstimatedBudget()
-                .compareTo(BigDecimal.ZERO) < 0) {
-
-            throw new IllegalArgumentException(
-                    "AI itinerary contains an invalid estimated budget."
-            );
-        }
-
-        if (generatedItinerary.getItems() == null) {
-            throw new IllegalArgumentException(
-                    "AI itinerary contains no items."
-            );
-        }
-
-        long numberOfDays =
-                ChronoUnit.DAYS.between(
-                        request.getStartDate(),
-                        request.getEndDate()
-                ) + 1;
-
-        for (AiGeneratedItinerary.GeneratedItem item
-                : generatedItinerary.getItems()) {
-
-            validateGeneratedItem(
-                    item,
-                    numberOfDays,
-                    request.getStartDate(),
-                    candidates
-            );
-        }
-    }
-
-    private void validateGeneratedItem(
-            AiGeneratedItinerary.GeneratedItem item,
-            long numberOfDays,
-            LocalDate startDate,
-            RecommendedCandidateContext candidates) {
-
-        if (item == null) {
-            throw new IllegalArgumentException(
-                    "AI itinerary contains an invalid item."
-            );
-        }
-
-        if (item.getDayNumber() == null
-                || item.getDayNumber() < 1
-                || item.getDayNumber() > numberOfDays) {
-
-            throw new IllegalArgumentException(
-                    "AI itinerary contains an invalid day number."
-            );
-        }
-
-        if (item.getActivityOrder() == null
-                || item.getActivityOrder() < 1) {
-
-            throw new IllegalArgumentException(
-                    "AI itinerary contains an invalid activity order."
-            );
-        }
-
-        if (item.getTime() == null) {
-            throw new IllegalArgumentException(
-                    "AI itinerary item time is required."
-            );
-        }
-
-        if (item.getActivityType() == null) {
-            throw new IllegalArgumentException(
-                    "AI itinerary item activity type is required."
-            );
-        }
-
-        if (item.getReferenceId() == null) {
-            throw new IllegalArgumentException(
-                    "AI itinerary item reference ID is required."
-            );
-        }
-
-        /*
-         * Most importantly, the reference must exist in the
-         * candidate set supplied to the AI.
-         */
-        if (!isValidReference(
-                item.getActivityType(),
-                item.getReferenceId(),
-                candidates)) {
-
-            throw new IllegalArgumentException(
-                    "AI itinerary contains an invalid reference for activity type "
-                            + item.getActivityType()
-                            + ": "
-                            + item.getReferenceId()
-            );
-        }
-
-        if (item.getActivityType() == ActivityType.ATTRACTION) {
-            candidates.getAttractions().stream()
-                    .filter(c -> c.getId().equals(item.getReferenceId()))
-                    .findFirst()
-                    .ifPresent(attraction -> {
-                        LocalDate visitDate = (startDate != null && item.getDayNumber() != null)
-                                ? startDate.plusDays(item.getDayNumber() - 1)
-                                : null;
-
-                        AttractionScheduleValidator.validateSchedule(
-                                attraction.getName(),
-                                visitDate,
-                                item.getTime(),
-                                attraction.getClosedDays(),
-                                attraction.getOpeningTime(),
-                                attraction.getClosingTime()
-                        );
-                    });
-        }
-
-        if (item.getActivityType() == ActivityType.RESTAURANT) {
-            candidates.getRestaurants().stream()
-                    .filter(c -> c.getId().equals(item.getReferenceId()))
-                    .findFirst()
-                    .ifPresent(restaurant -> {
-                        LocalDate visitDate = (startDate != null && item.getDayNumber() != null)
-                                ? startDate.plusDays(item.getDayNumber() - 1)
-                                : null;
-
-                        RestaurantScheduleValidator.validateSchedule(
-                                restaurant.getName(),
-                                visitDate,
-                                item.getTime(),
-                                restaurant.getClosedDays(),
-                                restaurant.getOpeningTime(),
-                                restaurant.getClosingTime(),
-                                restaurant.getSecondOpeningTime(),
-                                restaurant.getSecondClosingTime()
-                        );
-                    });
-        }
-    }
-
-    private boolean isValidReference(
-            ActivityType activityType,
-            Long referenceId,
-            RecommendedCandidateContext candidates) {
-
-        return switch (activityType) {
-
-            case ATTRACTION ->
-                    candidates.getAttractions()
-                            .stream()
-                            .anyMatch(candidate ->
-                                    candidate.getId()
-                                            .equals(referenceId)
-                            );
-
-            case ACCOMMODATION ->
-                    candidates.getAccommodations()
-                            .stream()
-                            .anyMatch(candidate ->
-                                    candidate.getId()
-                                            .equals(referenceId)
-                            );
-
-            case RESTAURANT ->
-                    candidates.getRestaurants()
-                            .stream()
-                            .anyMatch(candidate ->
-                                    candidate.getId()
-                                            .equals(referenceId)
-                            );
-
-            case GUIDE ->
-                    candidates.getGuides()
-                            .stream()
-                            .anyMatch(candidate ->
-                                    candidate.getId()
-                                            .equals(referenceId)
-                            );
-
-            case TRANSPORT ->
-                    candidates.getTransport()
-                            .stream()
-                            .anyMatch(candidate ->
-                                    candidate.getId()
-                                            .equals(referenceId)
-                            );
-
-            case FESTIVAL ->
-                    candidates.getFestivals()
-                            .stream()
-                            .anyMatch(candidate ->
-                                    candidate.getFestivalId()
-                                            .equals(referenceId)
-                            );
-        };
+        return validationResult.itinerary();
     }
 
     private AiItineraryResponse buildResponse(

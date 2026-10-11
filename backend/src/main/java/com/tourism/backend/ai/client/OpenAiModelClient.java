@@ -3,6 +3,7 @@ package com.tourism.backend.ai.client;
 import com.tourism.backend.ai.config.AiProperties;
 import com.tourism.backend.ai.dto.AiItineraryRequest;
 import com.tourism.backend.ai.dto.RecommendedCandidateContext;
+import com.tourism.backend.ai.dto.TripDayCalendarEntry;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
@@ -132,7 +133,7 @@ public class OpenAiModelClient implements AiModelClient {
         }
     }
 
-    private String buildSystemPrompt() {
+    String buildSystemPrompt() {
 
         return """
                 You are an AI tourism itinerary planner.
@@ -160,12 +161,23 @@ public class OpenAiModelClient implements AiModelClient {
                     response.
                 12. Do not invent prices, ratings, locations, or
                     other database information.
-                """;
+                13. Operating hours and schedule rules (CRITICAL):
+                %s
+                """.formatted(AiPromptScheduleHelper.SCHEDULE_RULES);
     }
 
-    private String buildPrompt(
+    String buildPrompt(
             AiItineraryRequest request,
             String candidateJson) {
+
+        List<TripDayCalendarEntry> tripCalendar =
+                AiPromptScheduleHelper.buildTripCalendar(
+                        request.getStartDate(),
+                        request.getEndDate()
+                );
+
+        String tripCalendarFormatted =
+                AiPromptScheduleHelper.formatTripCalendarText(tripCalendar);
 
         return """
                 Create an itinerary using the following request.
@@ -179,6 +191,9 @@ public class OpenAiModelClient implements AiModelClient {
                 Destination ID: %d
                 Selected experience IDs: %s
                 Festival ID: %s
+
+                TRIP CALENDAR:
+                %s
 
                 CANDIDATES:
 
@@ -204,6 +219,7 @@ public class OpenAiModelClient implements AiModelClient {
                 request.getDestinationId(),
                 request.getExperienceIds(),
                 request.getFestivalId(),
+                tripCalendarFormatted,
                 candidateJson
         );
     }

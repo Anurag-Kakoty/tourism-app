@@ -10,7 +10,7 @@ import java.time.LocalTime;
 import java.util.List;
 
 @Getter
-@Builder
+@Builder(toBuilder = true)
 public class AiGeneratedItinerary {
 
     private String title;
@@ -30,7 +30,7 @@ public class AiGeneratedItinerary {
     private List<GeneratedItem> items;
 
     @Getter
-    @Builder
+    @Builder(toBuilder = true)
     public static class GeneratedItem {
 
         private Integer dayNumber;

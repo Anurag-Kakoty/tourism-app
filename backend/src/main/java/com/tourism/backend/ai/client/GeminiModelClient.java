@@ -3,6 +3,7 @@ package com.tourism.backend.ai.client;
 import com.tourism.backend.ai.config.AiProperties;
 import com.tourism.backend.ai.dto.AiItineraryRequest;
 import com.tourism.backend.ai.dto.RecommendedCandidateContext;
+import com.tourism.backend.ai.dto.TripDayCalendarEntry;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
@@ -46,6 +47,15 @@ public class GeminiModelClient implements AiModelClient {
             AiItineraryRequest request,
             RecommendedCandidateContext candidates) {
 
+        return generateItinerary(request, candidates, null);
+    }
+
+    @Override
+    public AiGeneratedItinerary generateItinerary(
+            AiItineraryRequest request,
+            RecommendedCandidateContext candidates,
+            String feedback) {
+
         if (aiProperties.getGemini().getApiKey() == null
                 || aiProperties.getGemini().getApiKey().isBlank()) {
 
@@ -61,7 +71,8 @@ public class GeminiModelClient implements AiModelClient {
             String prompt =
                     buildPrompt(
                             request,
-                            candidateJson
+                            candidateJson,
+                            feedback
                     );
 
             Map<String, Object> requestBody =
@@ -120,9 +131,36 @@ public class GeminiModelClient implements AiModelClient {
         }
     }
 
-    private String buildPrompt(
+    String buildPrompt(
             AiItineraryRequest request,
             String candidateJson) {
+
+        return buildPrompt(request, candidateJson, null);
+    }
+
+    String buildPrompt(
+            AiItineraryRequest request,
+            String candidateJson,
+            String feedback) {
+
+        List<TripDayCalendarEntry> tripCalendar =
+                AiPromptScheduleHelper.buildTripCalendar(
+                        request.getStartDate(),
+                        request.getEndDate()
+                );
+
+        String tripCalendarFormatted =
+                AiPromptScheduleHelper.formatTripCalendarText(tripCalendar);
+
+        String feedbackSection = (feedback != null && !feedback.isBlank())
+                ? """
+
+                PREVIOUS ATTEMPT VALIDATION FEEDBACK:
+                The previous itinerary draft failed schedule validation with the following issues:
+                %s
+                You MUST fix these issues in this draft. Ensure all activities respect attraction operating hours, weekly closed days, and do not conflict.
+                """.formatted(feedback)
+                : "";
 
         return """
                 You are an AI tourism itinerary planner.
@@ -153,6 +191,8 @@ public class GeminiModelClient implements AiModelClient {
                     strictly in 24-hour HH:mm:ss format.
                     Example: "08:00:00".
                 14. Do not return AM/PM in the time field.
+                15. Operating hours and schedule rules (CRITICAL):
+                %s
 
                 TRAVEL REQUEST:
 
@@ -164,6 +204,9 @@ public class GeminiModelClient implements AiModelClient {
                 Selected experience IDs: %s
                 Festival ID: %s
 
+                TRIP CALENDAR:
+                %s
+                %s
                 CANDIDATES:
 
                 %s
@@ -180,6 +223,7 @@ public class GeminiModelClient implements AiModelClient {
                 Use only the supplied candidates.
                 Return the itinerary using the required JSON schema.
                 """.formatted(
+                AiPromptScheduleHelper.SCHEDULE_RULES,
                 request.getStartDate(),
                 request.getEndDate(),
                 request.getNumberOfTravelers(),
@@ -187,6 +231,8 @@ public class GeminiModelClient implements AiModelClient {
                 request.getDestinationId(),
                 request.getExperienceIds(),
                 request.getFestivalId(),
+                tripCalendarFormatted,
+                feedbackSection,
                 candidateJson
         );
     }
