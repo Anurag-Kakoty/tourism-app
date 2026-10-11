@@ -27,4 +27,8 @@ public final class ApiPaths {
     public static final String TRANSPORT = API + "/transport";
 
     public static final String ITINERARIES = API + "/itineraries";
+
+    public static final String USER_PREFERENCES = API + "/user/preferences";
+
+    public static final String RECOMMENDATIONS = API + "/recommendations";
 }

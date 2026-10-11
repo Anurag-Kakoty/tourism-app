@@ -164,13 +164,19 @@ public class SecurityConfig {
                                 "/api/restaurants/**",
                                 "/api/transport/**",
                                 "/api/festivals/**",
-                                "/api/festival-occurrences/**"
+                                "/api/festival-occurrences/**",
+                                "/api/recommendations/**"
                         ).permitAll()
 
                         // Itineraries require authentication.
                         // Ownership is handled by ItineraryService.
                         .requestMatchers(
                                 "/api/itineraries/**"
+                        ).authenticated()
+
+                        // User preferences require authentication
+                        .requestMatchers(
+                                "/api/user/preferences/**"
                         ).authenticated()
 
                         // Admin-only tourism data creation

@@ -1,8 +1,12 @@
 package com.tourism.backend.user.entity;
 
+import com.tourism.backend.tag.entity.Tag;
 import com.tourism.backend.util.BaseEntity;
 import jakarta.persistence.*;
 import lombok.*;
+
+import java.util.HashSet;
+import java.util.Set;
 
 @Entity
 @Table(
@@ -35,4 +39,17 @@ public class User extends BaseEntity {
     @Column(nullable = false)
     @Builder.Default
     private Boolean enabled = true;
+
+    @Column(columnDefinition = "boolean default false")
+    @Builder.Default
+    private Boolean onboardingCompleted = false;
+
+    @ManyToMany(fetch = FetchType.LAZY)
+    @JoinTable(
+            name = "user_interests",
+            joinColumns = @JoinColumn(name = "user_id"),
+            inverseJoinColumns = @JoinColumn(name = "tag_id")
+    )
+    @Builder.Default
+    private Set<Tag> interests = new HashSet<>();
 }

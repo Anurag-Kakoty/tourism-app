@@ -4,6 +4,7 @@ import {
   HiOutlineXMark,
   HiOutlineUserCircle,
   HiOutlineMap,
+  HiOutlineSparkles,
 } from "react-icons/hi2";
 
 import Logo from "./Logo";
@@ -178,6 +179,37 @@ export default function Navbar() {
 
                       <span>
                         My Itineraries
+                      </span>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setAccountOpen(false);
+                        window.location.href =
+                          "/preferences";
+                      }}
+                      className="
+                        mt-1
+                        flex
+                        w-full
+                        items-center
+                        gap-3
+                        rounded-lg
+                        px-3
+                        py-2.5
+                        text-left
+                        text-sm
+                        font-medium
+                        text-slate-700
+                        transition-colors
+                        hover:bg-slate-100
+                      "
+                    >
+                      <HiOutlineSparkles size={20} />
+
+                      <span>
+                        Travel Preferences
                       </span>
                     </button>
 

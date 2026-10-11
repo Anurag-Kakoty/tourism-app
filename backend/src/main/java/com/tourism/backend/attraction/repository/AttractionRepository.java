@@ -23,6 +23,14 @@ public interface AttractionRepository
             "tags",
             "experiences"
     })
+    List<Attraction> findAll(org.springframework.data.jpa.domain.Specification<Attraction> spec);
+
+    @EntityGraph(attributePaths = {
+            "destination",
+            "destination.state",
+            "tags",
+            "experiences"
+    })
     Optional<Attraction> findWithDestinationById(Long id);
 
     @EntityGraph(attributePaths = {

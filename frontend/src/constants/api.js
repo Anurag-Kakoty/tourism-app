@@ -13,6 +13,8 @@ const API = {
   TRANSPORT: "/transport",
   ITINERARIES: "/itineraries",
   TAGS: "/tags",
+  USER_PREFERENCES: "/user/preferences",
+  RECOMMENDATIONS: "/recommendations",
 };
 
 export default API;

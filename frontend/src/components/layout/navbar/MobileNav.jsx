@@ -2,6 +2,7 @@ import { NavLink } from "react-router-dom";
 import {
   HiOutlineUserCircle,
   HiOutlineMap,
+  HiOutlineSparkles,
 } from "react-icons/hi2";
 
 import Button from "../../common/inputs/Button";
@@ -98,6 +99,34 @@ export default function MobileNav({
 
               <span>
                 My Itineraries
+              </span>
+            </NavLink>
+
+            <NavLink
+              to="/preferences"
+              onClick={onClose}
+              className="
+                mt-2
+                flex
+                w-full
+                items-center
+                gap-3
+                rounded-lg
+                border
+                border-slate-200
+                px-4
+                py-3
+                text-sm
+                font-medium
+                text-slate-700
+                transition-colors
+                hover:bg-slate-100
+              "
+            >
+              <HiOutlineSparkles size={20} />
+
+              <span>
+                Travel Preferences
               </span>
             </NavLink>
 
